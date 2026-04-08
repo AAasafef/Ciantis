@@ -35,12 +35,10 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
   Future<void> _toggleComplete() async {
     if (_task == null) return;
 
-    final updated = _task!.copyWith(
-      completed: !_task!.completed,
-      updatedAt: DateTime.now(),
-    );
+    if (!_task!.completed) {
+      await _taskService.completeTask(_task!.id);
+    }
 
-    await _taskService.updateTask(updated);
     _loadTask();
   }
 
@@ -49,11 +47,6 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
 
     await _taskService.deleteTask(_task!.id);
     if (mounted) Navigator.pop(context);
-  }
-
-  String _formatDate(DateTime? date) {
-    if (date == null) return "No due date";
-    return "${date.month}/${date.day}/${date.year}";
   }
 
   Color _priorityColor(int priority) {
@@ -69,6 +62,45 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
       default:
         return Colors.blueGrey;
     }
+  }
+
+  String _dueDateLabel(TaskModel task) {
+    if (task.dueDate == null) return "No due date";
+
+    final now = DateTime.now();
+    final diff = task.dueDate!.difference(now).inDays;
+
+    if (diff < 0) return "Overdue";
+    if (diff == 0) return "Due today";
+    if (diff == 1) return "Due tomorrow";
+    return "Due in $diff days";
+  }
+
+  Widget _infoRow(String label, String value, {Color? color}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 10),
+      child: Row(
+        children: [
+          Text(
+            label,
+            style: const TextStyle(
+              color: Color(0xFF7A6F8F),
+              fontSize: 15,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const Spacer(),
+          Text(
+            value,
+            style: TextStyle(
+              color: color ?? const Color(0xFF5A4A6A),
+              fontSize: 15,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -96,9 +128,7 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
     }
 
     final task = _task!;
-    final overdue = task.dueDate != null &&
-        !task.completed &&
-        task.dueDate!.isBefore(DateTime.now());
+    final completed = task.completed;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF7F4F9),
@@ -128,12 +158,10 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
             // Title
             Text(
               task.title,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 22,
                 fontWeight: FontWeight.w700,
-                color: overdue ? Colors.redAccent : const Color(0xFF5A4A6A),
-                decoration:
-                    task.completed ? TextDecoration.lineThrough : null,
+                color: Color(0xFF5A4A6A),
               ),
             ),
 
@@ -161,7 +189,7 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
                     width: 30,
                     height: 30,
                     decoration: BoxDecoration(
-                      color: task.completed
+                      color: completed
                           ? const Color(0xFF8A4FFF)
                           : Colors.transparent,
                       borderRadius: BorderRadius.circular(8),
@@ -170,7 +198,7 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
                         width: 2,
                       ),
                     ),
-                    child: task.completed
+                    child: completed
                         ? const Icon(Icons.check,
                             color: Colors.white, size: 20)
                         : null,
@@ -178,7 +206,7 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
                 ),
                 const SizedBox(width: 12),
                 Text(
-                  task.completed ? "Completed" : "Mark as complete",
+                  completed ? "Completed" : "Mark as complete",
                   style: const TextStyle(
                     color: Color(0xFF5A4A6A),
                     fontSize: 15,
@@ -209,32 +237,32 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
                   _infoRow("Category",
                       task.category[0].toUpperCase() + task.category.substring(1)),
                   _infoRow("Priority", task.priority.toString(),
-                      trailingColor: _priorityColor(task.priority)),
-                  _infoRow("Due Date", _formatDate(task.dueDate),
-                      highlight: overdue),
+                      color: _priorityColor(task.priority)),
                   _infoRow("Emotional Load", task.emotionalLoad.toString()),
                   _infoRow("Fatigue Impact", task.fatigueImpact.toString()),
+                  _infoRow("Due Date", _dueDateLabel(task)),
+                  _infoRow("Streak", task.streak.toString()),
                 ],
               ),
             ),
 
             const SizedBox(height: 40),
 
-            // Edit button
+            // Edit Button
             SizedBox(
               width: double.infinity,
-              child: ElevatedButton(
+              child: OutlinedButton(
                 onPressed: () async {
                   await Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (_) => TaskCreateScreen(),
+                      builder: (_) => const TaskCreateScreen(),
                     ),
                   );
                   _loadTask();
                 },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF8A4FFF),
+                style: OutlinedButton.styleFrom(
+                  side: const BorderSide(color: Color(0xFF8A4FFF)),
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(14),
@@ -243,7 +271,7 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
                 child: const Text(
                   'Edit Task',
                   style: TextStyle(
-                    color: Colors.white,
+                    color: Color(0xFF8A4FFF),
                     fontWeight: FontWeight.w600,
                     fontSize: 16,
                   ),
@@ -252,36 +280,6 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _infoRow(String label, String value,
-      {bool highlight = false, Color? trailingColor}) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 10),
-      child: Row(
-        children: [
-          Text(
-            label,
-            style: const TextStyle(
-              color: Color(0xFF7A6F8F),
-              fontSize: 15,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          const Spacer(),
-          Text(
-            value,
-            style: TextStyle(
-              color: highlight
-                  ? Colors.redAccent
-                  : trailingColor ?? const Color(0xFF5A4A6A),
-              fontSize: 15,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
       ),
     );
   }
