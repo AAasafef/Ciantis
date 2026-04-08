@@ -47,16 +47,9 @@ class TaskRepository {
   }
 
   // -----------------------------
-  // GET OVERDUE TASKS
+  // GET TASKS BY DUE DATE
   // -----------------------------
-  Future<List<TaskModel>> getOverdueTasks(DateTime now) async {
-    return await _dao.getOverdueTasks(now);
-  }
-
-  // -----------------------------
-  // GET TASKS FOR SPECIFIC DATE
-  // -----------------------------
-  Future<List<TaskModel>> getTasksForDate(DateTime date) async {
-    return await _dao.getTasksForDate(date);
+  Future<List<TaskModel>> getTasksByDueDate(DateTime date) async {
+    return await _dao.getTasksByDueDate(date);
   }
 }
