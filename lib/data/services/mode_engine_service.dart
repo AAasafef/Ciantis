@@ -8,6 +8,9 @@ class ModeEngineService extends ChangeNotifier {
   ModeModel? _currentMode;
   ModeModel? get currentMode => _currentMode;
 
+  ModeModel? _currentSuggestion;
+  ModeModel? get currentSuggestion => _currentSuggestion;
+
   // -----------------------------
   // AVAILABLE MODES
   // -----------------------------
@@ -85,7 +88,16 @@ class ModeEngineService extends ChangeNotifier {
   // -----------------------------
   Future<void> setMode(String modeId) async {
     _currentMode = _modes.firstWhere((m) => m.id == modeId);
+    _currentSuggestion = null;
     await _repository.saveCurrentMode(modeId);
+    notifyListeners();
+  }
+
+  // -----------------------------
+  // SET SUGGESTION (TRIGGER UI)
+  // -----------------------------
+  void setSuggestion(ModeModel? suggestion) {
+    _currentSuggestion = suggestion;
     notifyListeners();
   }
 
@@ -97,27 +109,22 @@ class ModeEngineService extends ChangeNotifier {
     required int fatigue,
     required bool isNight,
   }) {
-    // Night mode suggestion
     if (isNight && fatigue > 15) {
       return _modes.firstWhere((m) => m.id == 'night');
     }
 
-    // Overload protection
     if (emotionalLoad > 25 || fatigue > 25) {
       return _modes.firstWhere((m) => m.id == 'overload');
     }
 
-    // Recovery mode
     if (emotionalLoad > 20 || fatigue > 20) {
       return _modes.firstWhere((m) => m.id == 'recovery');
     }
 
-    // Focus mode
     if (emotionalLoad < 8 && fatigue < 8) {
       return _modes.firstWhere((m) => m.id == 'focus');
     }
 
-    // Calm mode
     if (emotionalLoad > 10 || fatigue > 10) {
       return _modes.firstWhere((m) => m.id == 'calm');
     }
