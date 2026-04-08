@@ -1,17 +1,18 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-
 class HabitModel {
   final String id;
   final String title;
   final String? description;
 
-  // daily, weekly, custom
-  final String frequency;
+  final String category; // school, kids, salon, health, personal
+  final int priority; // 1–5
 
-  // for weekly habits: [1,3,5] = Mon, Wed, Fri
-  final List<int>? targetDays;
+  final int emotionalLoad; // auto-calculated
+  final int fatigueImpact; // auto-calculated
 
-  final int streakCount;
+  final List<int> days; // 1=Mon ... 7=Sun
+  final bool active;
+
+  final int streak;
   final DateTime? lastCompletedDate;
 
   final DateTime createdAt;
@@ -21,30 +22,46 @@ class HabitModel {
     required this.id,
     required this.title,
     this.description,
-    required this.frequency,
-    this.targetDays,
-    required this.streakCount,
-    this.lastCompletedDate,
+    required this.category,
+    required this.priority,
+    required this.emotionalLoad,
+    required this.fatigueImpact,
+    required this.days,
+    required this.active,
+    required this.streak,
+    required this.lastCompletedDate,
     required this.createdAt,
     required this.updatedAt,
   });
 
-  // -----------------------------
-  // LOCAL MAP
-  // -----------------------------
-  Map<String, dynamic> toMap() {
-    return {
-      'id': id,
-      'title': title,
-      'description': description,
-      'frequency': frequency,
-      'targetDays': targetDays?.join(','),
-      'streakCount': streakCount,
-      'lastCompletedDate':
-          lastCompletedDate?.millisecondsSinceEpoch,
-      'createdAt': createdAt.millisecondsSinceEpoch,
-      'updatedAt': updatedAt.millisecondsSinceEpoch,
-    };
+  HabitModel copyWith({
+    String? title,
+    String? description,
+    String? category,
+    int? priority,
+    int? emotionalLoad,
+    int? fatigueImpact,
+    List<int>? days,
+    bool? active,
+    int? streak,
+    DateTime? lastCompletedDate,
+    DateTime? updatedAt,
+  }) {
+    return HabitModel(
+      id: id,
+      title: title ?? this.title,
+      description: description ?? this.description,
+      category: category ?? this.category,
+      priority: priority ?? this.priority,
+      emotionalLoad: emotionalLoad ?? this.emotionalLoad,
+      fatigueImpact: fatigueImpact ?? this.fatigueImpact,
+      days: days ?? this.days,
+      active: active ?? this.active,
+      streak: streak ?? this.streak,
+      lastCompletedDate: lastCompletedDate ?? this.lastCompletedDate,
+      createdAt: createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
   }
 
   factory HabitModel.fromMap(Map<String, dynamic> map) {
@@ -52,61 +69,39 @@ class HabitModel {
       id: map['id'],
       title: map['title'],
       description: map['description'],
-      frequency: map['frequency'],
-      targetDays: map['targetDays'] != null
-          ? map['targetDays']
-              .split(',')
-              .map((e) => int.parse(e))
-              .toList()
-          : null,
-      streakCount: map['streakCount'],
+      category: map['category'],
+      priority: map['priority'],
+      emotionalLoad: map['emotionalLoad'],
+      fatigueImpact: map['fatigueImpact'],
+      days: (map['days'] as String)
+          .split(',')
+          .map((e) => int.parse(e))
+          .toList(),
+      active: map['active'] == 1,
+      streak: map['streak'],
       lastCompletedDate: map['lastCompletedDate'] != null
-          ? DateTime.fromMillisecondsSinceEpoch(
-              map['lastCompletedDate'],
-            )
+          ? DateTime.parse(map['lastCompletedDate'])
           : null,
-      createdAt: DateTime.fromMillisecondsSinceEpoch(
-        map['createdAt'],
-      ),
-      updatedAt: DateTime.fromMillisecondsSinceEpoch(
-        map['updatedAt'],
-      ),
+      createdAt: DateTime.parse(map['createdAt']),
+      updatedAt: DateTime.parse(map['updatedAt']),
     );
   }
 
-  // -----------------------------
-  // FIRESTORE
-  // -----------------------------
-  Map<String, dynamic> toFirestore() {
+  Map<String, dynamic> toMap() {
     return {
+      'id': id,
       'title': title,
       'description': description,
-      'frequency': frequency,
-      'targetDays': targetDays,
-      'streakCount': streakCount,
-      'lastCompletedDate': lastCompletedDate,
-      'createdAt': createdAt,
-      'updatedAt': updatedAt,
+      'category': category,
+      'priority': priority,
+      'emotionalLoad': emotionalLoad,
+      'fatigueImpact': fatigueImpact,
+      'days': days.join(','),
+      'active': active ? 1 : 0,
+      'streak': streak,
+      'lastCompletedDate': lastCompletedDate?.toIso8601String(),
+      'createdAt': createdAt.toIso8601String(),
+      'updatedAt': updatedAt.toIso8601String(),
     };
-  }
-
-  factory HabitModel.fromFirestore(
-      DocumentSnapshot<Map<String, dynamic>> doc) {
-    final data = doc.data()!;
-
-    return HabitModel(
-      id: doc.id,
-      title: data['title'],
-      description: data['description'],
-      frequency: data['frequency'],
-      targetDays: data['targetDays'] != null
-          ? List<int>.from(data['targetDays'])
-          : null,
-      streakCount: data['streakCount'],
-      lastCompletedDate:
-          (data['lastCompletedDate'] as Timestamp?)?.toDate(),
-      createdAt: (data['createdAt'] as Timestamp).toDate(),
-      updatedAt: (data['updatedAt'] as Timestamp).toDate(),
-    );
   }
 }
