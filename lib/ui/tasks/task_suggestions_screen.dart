@@ -45,92 +45,16 @@ class _TaskSuggestionsScreenState extends State<TaskSuggestionsScreen> {
     }
   }
 
-  Widget _suggestionCard(TaskModel task) {
-    final overdue = task.dueDate != null &&
-        !task.completed &&
-        task.dueDate!.isBefore(DateTime.now());
+  String _dueDateLabel(TaskModel task) {
+    if (task.dueDate == null) return "No due date";
 
-    return GestureDetector(
-      onTap: () async {
-        await Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => TaskDetailsScreen(taskId: task.id),
-          ),
-        );
-        _loadSuggestions();
-      },
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 16),
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(
-            color: overdue ? Colors.redAccent : const Color(0xFFE8E2F0),
-            width: overdue ? 2 : 1,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 8,
-              offset: const Offset(0, 3),
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Title
-            Text(
-              task.title,
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w700,
-                color: overdue ? Colors.redAccent : const Color(0xFF5A4A6A),
-              ),
-            ),
+    final now = DateTime.now();
+    final diff = task.dueDate!.difference(now).inDays;
 
-            const SizedBox(height: 8),
-
-            // Due date
-            if (task.dueDate != null)
-              Text(
-                _formatDueDate(task.dueDate!),
-                style: TextStyle(
-                  fontSize: 14,
-                  color: overdue
-                      ? Colors.redAccent
-                      : const Color(0xFF7A6F8F),
-                ),
-              ),
-
-            const SizedBox(height: 16),
-
-            // Emotional + fatigue row
-            Row(
-              children: [
-                _badge("Emotional", task.emotionalLoad.toString(),
-                    const Color(0xFF8A4FFF)),
-                const SizedBox(width: 10),
-                _badge("Fatigue", task.fatigueImpact.toString(),
-                    const Color(0xFF5A4A6A)),
-                const Spacer(),
-                // Priority dot
-                Container(
-                  width: 16,
-                  height: 16,
-                  decoration: BoxDecoration(
-                    color: _priorityColor(task.priority),
-                    shape: BoxShape.circle,
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
+    if (diff < 0) return "Overdue";
+    if (diff == 0) return "Due today";
+    if (diff == 1) return "Due tomorrow";
+    return "Due in $diff days";
   }
 
   Widget _badge(String label, String value, Color color) {
@@ -163,15 +87,96 @@ class _TaskSuggestionsScreenState extends State<TaskSuggestionsScreen> {
     );
   }
 
-  String _formatDueDate(DateTime date) {
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final due = DateTime(date.year, date.month, date.day);
+  Widget _taskCard(TaskModel task) {
+    return GestureDetector(
+      onTap: () async {
+        await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => TaskDetailsScreen(taskId: task.id),
+          ),
+        );
+        _loadSuggestions();
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 16),
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(
+            color: const Color(0xFFE8E2F0),
+            width: 1,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 8,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Title
+            Text(
+              task.title,
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+                color: Color(0xFF5A4A6A),
+              ),
+            ),
 
-    if (due == today) return "Due Today";
-    if (due == today.add(const Duration(days: 1))) return "Due Tomorrow";
+            const SizedBox(height: 8),
 
-    return "${date.month}/${date.day}/${date.year}";
+            // Due date
+            Text(
+              _dueDateLabel(task),
+              style: const TextStyle(
+                fontSize: 14,
+                color: Color(0xFF7A6F8F),
+              ),
+            ),
+
+            const SizedBox(height: 16),
+
+            // Emotional + fatigue row
+            Row(
+              children: [
+                _badge("Emotional", task.emotionalLoad.toString(),
+                    const Color(0xFF8A4FFF)),
+                const SizedBox(width: 10),
+                _badge("Fatigue", task.fatigueImpact.toString(),
+                    const Color(0xFF5A4A6A)),
+                const Spacer(),
+                // Priority dot
+                Container(
+                  width: 16,
+                  height: 16,
+                  decoration: BoxDecoration(
+                    color: _priorityColor(task.priority),
+                    shape: BoxShape.circle,
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 16),
+
+            // Streak
+            Text(
+              "Streak: ${task.streak}",
+              style: const TextStyle(
+                fontSize: 14,
+                color: Color(0xFF7A6F8F),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   @override
@@ -183,7 +188,7 @@ class _TaskSuggestionsScreenState extends State<TaskSuggestionsScreen> {
         elevation: 0,
         centerTitle: true,
         title: const Text(
-          'Do This Next',
+          'Task Suggestions',
           style: TextStyle(
             color: Color(0xFF8A4FFF),
             fontWeight: FontWeight.w600,
@@ -204,7 +209,7 @@ class _TaskSuggestionsScreenState extends State<TaskSuggestionsScreen> {
                 )
               : ListView(
                   padding: const EdgeInsets.all(20),
-                  children: _suggestions.map(_suggestionCard).toList(),
+                  children: _suggestions.map(_taskCard).toList(),
                 ),
     );
   }
