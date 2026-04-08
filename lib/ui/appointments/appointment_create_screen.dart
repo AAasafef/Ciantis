@@ -125,3 +125,279 @@ class _AppointmentCreateScreenState extends State<AppointmentCreateScreen> {
         ),
         const Spacer(),
         DropdownButton<int>(
+          value: value,
+          items: List.generate(
+            10,
+            (i) => DropdownMenuItem(
+              value: i + 1,
+              child: Text('${i + 1}'),
+            ),
+          ),
+          onChanged: (v) => onChanged(v!),
+        ),
+      ],
+    );
+  }
+
+  Widget _dateTimePicker({
+    required String label,
+    required DateTime? value,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: const Color(0xFFE8E2F0),
+            width: 1,
+          ),
+        ),
+        child: Text(
+          value == null
+              ? label
+              : "${value.month}/${value.day}/${value.year}  ${value.hour.toString().padLeft(2, '0')}:${value.minute.toString().padLeft(2, '0')}",
+          style: const TextStyle(
+            color: Color(0xFF5A4A6A),
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFFF7F4F9),
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        centerTitle: true,
+        title: const Text(
+          'New Appointment',
+          style: TextStyle(
+            color: Color(0xFF8A4FFF),
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Title
+            const Text(
+              'Title',
+              style: TextStyle(
+                color: Color(0xFF5A4A6A),
+                fontWeight: FontWeight.w600,
+                fontSize: 15,
+              ),
+            ),
+            const SizedBox(height: 8),
+            TextField(
+              controller: _titleController,
+              decoration: InputDecoration(
+                hintText: 'Enter appointment name',
+                filled: true,
+                fillColor: Colors.white,
+                contentPadding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(14),
+                  borderSide: BorderSide.none,
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 20),
+
+            // Description
+            const Text(
+              'Description',
+              style: TextStyle(
+                color: Color(0xFF5A4A6A),
+                fontWeight: FontWeight.w600,
+                fontSize: 15,
+              ),
+            ),
+            const SizedBox(height: 8),
+            TextField(
+              controller: _descriptionController,
+              maxLines: 3,
+              decoration: InputDecoration(
+                hintText: 'Optional',
+                filled: true,
+                fillColor: Colors.white,
+                contentPadding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(14),
+                  borderSide: BorderSide.none,
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 20),
+
+            // Location
+            const Text(
+              'Location',
+              style: TextStyle(
+                color: Color(0xFF5A4A6A),
+                fontWeight: FontWeight.w600,
+                fontSize: 15,
+              ),
+            ),
+            const SizedBox(height: 8),
+            TextField(
+              controller: _locationController,
+              decoration: InputDecoration(
+                hintText: 'Optional',
+                filled: true,
+                fillColor: Colors.white,
+                contentPadding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(14),
+                  borderSide: BorderSide.none,
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 20),
+
+            // Category
+            const Text(
+              'Category',
+              style: TextStyle(
+                color: Color(0xFF5A4A6A),
+                fontWeight: FontWeight.w600,
+                fontSize: 15,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Wrap(
+              children: _categories.map(_categoryChip).toList(),
+            ),
+
+            const SizedBox(height: 20),
+
+            // Start time
+            const Text(
+              'Start Time',
+              style: TextStyle(
+                color: Color(0xFF5A4A6A),
+                fontWeight: FontWeight.w600,
+                fontSize: 15,
+              ),
+            ),
+            const SizedBox(height: 8),
+            _dateTimePicker(
+              label: "Select start time",
+              value: _startTime,
+              onTap: () async {
+                final dt = await _pickDateTime(_startTime);
+                if (dt != null) setState(() => _startTime = dt);
+              },
+            ),
+
+            const SizedBox(height: 20),
+
+            // End time
+            const Text(
+              'End Time',
+              style: TextStyle(
+                color: Color(0xFF5A4A6A),
+                fontWeight: FontWeight.w600,
+                fontSize: 15,
+              ),
+            ),
+            const SizedBox(height: 8),
+            _dateTimePicker(
+              label: "Select end time",
+              value: _endTime,
+              onTap: () async {
+                final dt = await _pickDateTime(_endTime);
+                if (dt != null) setState(() => _endTime = dt);
+              },
+            ),
+
+            const SizedBox(height: 20),
+
+            // Emotional load
+            _loadSelector(
+              label: "Emotional Load",
+              value: _emotionalLoad,
+              onChanged: (v) => setState(() => _emotionalLoad = v),
+            ),
+
+            const SizedBox(height: 16),
+
+            // Fatigue impact
+            _loadSelector(
+              label: "Fatigue Impact",
+              value: _fatigueImpact,
+              onChanged: (v) => setState(() => _fatigueImpact = v),
+            ),
+
+            const SizedBox(height: 20),
+
+            // Reminder toggle
+            Row(
+              children: [
+                const Text(
+                  "Reminder",
+                  style: TextStyle(
+                    color: Color(0xFF5A4A6A),
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const Spacer(),
+                Switch(
+                  value: _reminderEnabled,
+                  activeColor: const Color(0xFF8A4FFF),
+                  onChanged: (v) {
+                    setState(() {
+                      _reminderEnabled = v;
+                    });
+                  },
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 40),
+
+            // Save Button
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: _saveAppointment,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF8A4FFF),
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                ),
+                child: const Text(
+                  'Save Appointment',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 16,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
