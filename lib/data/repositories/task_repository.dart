@@ -1,77 +1,62 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import '../dao/task_dao.dart';
 import '../models/task_model.dart';
 
 class TaskRepository {
-  final TaskDao _taskDao = TaskDao.instance;
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-
-  // COLLECTION NAME
-  final String _collection = 'tasks';
+  final TaskDao _dao = TaskDao();
 
   // -----------------------------
-  // CREATE / ADD TASK
+  // ADD TASK
   // -----------------------------
   Future<void> addTask(TaskModel task) async {
-    // Save locally
-    await _taskDao.insertTask(task);
-
-    // Save to cloud
-    await _firestore.collection(_collection).doc(task.id).set(task.toFirestore());
+    await _dao.insertTask(task);
   }
 
   // -----------------------------
   // UPDATE TASK
   // -----------------------------
   Future<void> updateTask(TaskModel task) async {
-    // Update local
-    await _taskDao.updateTask(task);
-
-    // Update cloud
-    await _firestore.collection(_collection).doc(task.id).update(task.toFirestore());
+    await _dao.updateTask(task);
   }
 
   // -----------------------------
   // DELETE TASK
   // -----------------------------
   Future<void> deleteTask(String id) async {
-    // Delete local
-    await _taskDao.deleteTask(id);
-
-    // Delete cloud
-    await _firestore.collection(_collection).doc(id).delete();
+    await _dao.deleteTask(id);
   }
 
   // -----------------------------
-  // GET ALL TASKS (LOCAL FIRST)
+  // GET ALL TASKS
   // -----------------------------
   Future<List<TaskModel>> getAllTasks() async {
-    // Always load from local first (fast)
-    final localTasks = await _taskDao.getAllTasks();
-
-    // Then sync cloud → local
-    await _syncFromCloud();
-
-    // Return updated local list
-    return await _taskDao.getAllTasks();
+    return await _dao.getAllTasks();
   }
 
   // -----------------------------
-  // SYNC CLOUD → LOCAL
-  // -----------------------------
-  Future<void> _syncFromCloud() async {
-    final snapshot = await _firestore.collection(_collection).get();
-
-    for (var doc in snapshot.docs) {
-      final task = TaskModel.fromFirestore(doc);
-      await _taskDao.insertTask(task);
-    }
-  }
-
-  // -----------------------------
-  // GET SINGLE TASK
+  // GET TASK BY ID
   // -----------------------------
   Future<TaskModel?> getTaskById(String id) async {
-    return await _taskDao.getTaskById(id);
+    return await _dao.getTaskById(id);
+  }
+
+  // -----------------------------
+  // GET TASKS BY CATEGORY
+  // -----------------------------
+  Future<List<TaskModel>> getTasksByCategory(String category) async {
+    return await _dao.getTasksByCategory(category);
+  }
+
+  // -----------------------------
+  // GET OVERDUE TASKS
+  // -----------------------------
+  Future<List<TaskModel>> getOverdueTasks(DateTime now) async {
+    return await _dao.getOverdueTasks(now);
+  }
+
+  // -----------------------------
+  // GET TASKS FOR SPECIFIC DATE
+  // -----------------------------
+  Future<List<TaskModel>> getTasksForDate(DateTime date) async {
+    return await _dao.getTasksForDate(date);
   }
 }
