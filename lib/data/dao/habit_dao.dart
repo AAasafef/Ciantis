@@ -1,52 +1,40 @@
 import 'package:sqflite/sqflite.dart';
-import 'package:path/path.dart';
 import '../models/habit_model.dart';
+import '../database/app_database.dart';
 
 class HabitDao {
-  static final HabitDao instance = HabitDao._internal();
-  Database? _database;
+  static const String tableName = 'habits';
 
-  HabitDao._internal();
-
-  Future<Database> get database async {
-    if (_database != null) return _database!;
-    _database = await _initDb();
-    return _database!;
-  }
-
-  Future<Database> _initDb() async {
-    final dbPath = await getDatabasesPath();
-    final path = join(dbPath, 'ciantis_habits.db');
-
-    return await openDatabase(
-      path,
-      version: 1,
-      onCreate: (db, version) async {
-        await db.execute('''
-          CREATE TABLE habits (
-            id TEXT PRIMARY KEY,
-            title TEXT NOT NULL,
-            description TEXT,
-            frequency TEXT NOT NULL,
-            targetDays TEXT,
-            streakCount INTEGER NOT NULL,
-            lastCompletedDate INTEGER,
-            createdAt INTEGER NOT NULL,
-            updatedAt INTEGER NOT NULL
-          )
-        ''');
-      },
-    );
+  // -----------------------------
+  // CREATE TABLE
+  // -----------------------------
+  Future<void> createTable(Database db) async {
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS $tableName (
+        id TEXT PRIMARY KEY,
+        title TEXT NOT NULL,
+        description TEXT,
+        category TEXT NOT NULL,
+        priority INTEGER NOT NULL,
+        emotionalLoad INTEGER NOT NULL,
+        fatigueImpact INTEGER NOT NULL,
+        days TEXT NOT NULL,
+        active INTEGER NOT NULL,
+        streak INTEGER NOT NULL,
+        lastCompletedDate TEXT,
+        createdAt TEXT NOT NULL,
+        updatedAt TEXT NOT NULL
+      )
+    ''');
   }
 
   // -----------------------------
   // INSERT HABIT
   // -----------------------------
   Future<void> insertHabit(HabitModel habit) async {
-    final db = await database;
-
+    final db = await AppDatabase.instance.database;
     await db.insert(
-      'habits',
+      tableName,
       habit.toMap(),
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
@@ -56,10 +44,9 @@ class HabitDao {
   // UPDATE HABIT
   // -----------------------------
   Future<void> updateHabit(HabitModel habit) async {
-    final db = await database;
-
+    final db = await AppDatabase.instance.database;
     await db.update(
-      'habits',
+      tableName,
       habit.toMap(),
       where: 'id = ?',
       whereArgs: [habit.id],
@@ -70,10 +57,9 @@ class HabitDao {
   // DELETE HABIT
   // -----------------------------
   Future<void> deleteHabit(String id) async {
-    final db = await database;
-
+    final db = await AppDatabase.instance.database;
     await db.delete(
-      'habits',
+      tableName,
       where: 'id = ?',
       whereArgs: [id],
     );
@@ -83,30 +69,55 @@ class HabitDao {
   // GET ALL HABITS
   // -----------------------------
   Future<List<HabitModel>> getAllHabits() async {
-    final db = await database;
+    final db = await AppDatabase.instance.database;
+    final maps = await db.query(tableName, orderBy: 'createdAt DESC');
 
-    final maps = await db.query(
-      'habits',
-      orderBy: 'createdAt DESC',
-    );
-
-    return maps.map((map) => HabitModel.fromMap(map)).toList();
+    return maps.map((m) => HabitModel.fromMap(m)).toList();
   }
 
   // -----------------------------
   // GET HABIT BY ID
   // -----------------------------
   Future<HabitModel?> getHabitById(String id) async {
-    final db = await database;
-
+    final db = await AppDatabase.instance.database;
     final maps = await db.query(
-      'habits',
+      tableName,
       where: 'id = ?',
       whereArgs: [id],
     );
 
     if (maps.isEmpty) return null;
-
     return HabitModel.fromMap(maps.first);
+  }
+
+  // -----------------------------
+  // GET ACTIVE HABITS
+  // -----------------------------
+  Future<List<HabitModel>> getActiveHabits() async {
+    final db = await AppDatabase.instance.database;
+    final maps = await db.query(
+      tableName,
+      where: 'active = 1',
+      orderBy: 'priority DESC',
+    );
+
+    return maps.map((m) => HabitModel.fromMap(m)).toList();
+  }
+
+  // -----------------------------
+  // GET HABITS FOR SPECIFIC WEEKDAY
+  // -----------------------------
+  Future<List<HabitModel>> getHabitsForWeekday(int weekday) async {
+    final db = await AppDatabase.instance.database;
+
+    // weekday is 1–7 (Mon–Sun)
+    final maps = await db.query(
+      tableName,
+      where: 'days LIKE ? AND active = 1',
+      whereArgs: ['%$weekday%'],
+      orderBy: 'priority DESC',
+    );
+
+    return maps.map((m) => HabitModel.fromMap(m)).toList();
   }
 }
