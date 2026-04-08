@@ -1,34 +1,47 @@
 import 'package:flutter/material.dart';
-import 'runtime/runtime.dart';
-import 'kernel/kernel.dart';
-import 'engine/engine.dart';
-import 'shell/system_shell.dart';
+import '../engine/engine.dart';
+import '../../ui/navigation/ciantis_nav.dart';
 
-class CiantisSystem {
-  CiantisSystem._internal();
+class CiantisSystemShell extends StatefulWidget {
+  const CiantisSystemShell({super.key});
 
-  static final CiantisSystem instance = CiantisSystem._internal();
+  @override
+  State<CiantisSystemShell> createState() => _CiantisSystemShellState();
+}
 
-  bool _launched = false;
+class _CiantisSystemShellState extends State<CiantisSystemShell> {
+  bool _ready = false;
 
-  bool get isLaunched => _launched;
-
-  Future<void> launch() async {
-    if (_launched) return;
-
-    // Boot runtime
-    await CiantisRuntime.instance.boot();
-
-    // Initialize kernel
-    await CiantisKernel.instance.initialize();
-
-    // Start engine
-    await CiantisEngine.instance.start();
-
-    _launched = true;
+  @override
+  void initState() {
+    super.initState();
+    _bootSystem();
   }
 
-  Widget buildSystemShell() {
-    return const CiantisSystemShell();
+  Future<void> _bootSystem() async {
+    await CiantisEngine.instance.start();
+    setState(() {
+      _ready = true;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!_ready) {
+      return const Scaffold(
+        body: Center(
+          child: Text(
+            'Starting Ciantis Engine…',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.w500,
+              color: Color(0xFF8A4FFF),
+            ),
+          ),
+        ),
+      );
+    }
+
+    return const CiantisNav();
   }
 }
