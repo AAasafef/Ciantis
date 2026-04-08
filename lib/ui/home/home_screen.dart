@@ -1,40 +1,59 @@
 import 'package:flutter/material.dart';
+import '../home/home_screen.dart';
+import '../modes/modes_screen.dart';
+import '../ai/ai_screen.dart';
+import '../settings/settings_screen.dart';
 
-class CiantisHomeScreen extends StatelessWidget {
-  const CiantisHomeScreen({super.key});
+class CiantisNav extends StatefulWidget {
+  const CiantisNav({super.key});
+
+  @override
+  State<CiantisNav> createState() => _CiantisNavState();
+}
+
+class _CiantisNavState extends State<CiantisNav> {
+  int _index = 0;
+
+  final List<Widget> _screens = const [
+    CiantisHomeScreen(),     // Home
+    ModesScreen(),           // Modes
+    AiScreen(),              // AI
+    SettingsScreen(),        // Settings
+  ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F4F9),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: const [
-            Icon(
-              Icons.auto_awesome,
-              size: 60,
-              color: Color(0xFF8A4FFF),
-            ),
-            SizedBox(height: 20),
-            Text(
-              'Welcome to Ciantis OS',
-              style: TextStyle(
-                fontSize: 26,
-                fontWeight: FontWeight.w600,
-                color: Color(0xFF8A4FFF),
-              ),
-            ),
-            SizedBox(height: 10),
-            Text(
-              'Your luxury personal operating system',
-              style: TextStyle(
-                fontSize: 16,
-                color: Color(0xFF5A4A6A),
-              ),
-            ),
-          ],
-        ),
+      body: _screens[_index],
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _index,
+        onTap: (i) {
+          setState(() {
+            _index = i;
+          });
+        },
+        selectedItemColor: const Color(0xFF8A4FFF),
+        unselectedItemColor: const Color(0xFFB8AFCF),
+        backgroundColor: Colors.white,
+        type: BottomNavigationBarType.fixed,
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home_rounded),
+            label: 'Home',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.bubble_chart_rounded),
+            label: 'Modes',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.auto_awesome_rounded),
+            label: 'AI',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.settings_rounded),
+            label: 'Settings',
+          ),
+        ],
       ),
     );
   }
