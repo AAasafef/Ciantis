@@ -1,6 +1,12 @@
 import 'package:flutter/material.dart';
+import 'system/system.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // Launch the Ciantis OS
+  await CiantisSystem.instance.launch();
+
   runApp(const CiantisApp());
 }
 
@@ -20,27 +26,7 @@ class CiantisApp extends StatelessWidget {
           seedColor: const Color(0xFF8A4FFF),
         ),
       ),
-      home: const CiantisBootScreen(),
-    );
-  }
-}
-
-class CiantisBootScreen extends StatelessWidget {
-  const CiantisBootScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const Scaffold(
-      body: Center(
-        child: Text(
-          'Ciantis OS Booting…',
-          style: TextStyle(
-            fontSize: 22,
-            fontWeight: FontWeight.w600,
-            color: Color(0xFF8A4FFF),
-          ),
-        ),
-      ),
+      home: CiantisSystem.instance.buildSystemShell(),
     );
   }
 }
