@@ -1,25 +1,27 @@
 import 'package:sqflite/sqflite.dart';
-import '../models/task_model.dart';
 import '../database/app_database.dart';
+import '../models/task_model.dart';
 
 class TaskDao {
-  static const String tableName = 'tasks';
+  static const String table = 'tasks';
 
   // -----------------------------
   // CREATE TABLE
   // -----------------------------
   Future<void> createTable(Database db) async {
     await db.execute('''
-      CREATE TABLE IF NOT EXISTS $tableName (
+      CREATE TABLE IF NOT EXISTS $table (
         id TEXT PRIMARY KEY,
         title TEXT NOT NULL,
         description TEXT,
-        dueDate TEXT,
-        completed INTEGER NOT NULL,
         category TEXT NOT NULL,
         priority INTEGER NOT NULL,
         emotionalLoad INTEGER NOT NULL,
         fatigueImpact INTEGER NOT NULL,
+        dueDate TEXT,
+        completed INTEGER NOT NULL,
+        streak INTEGER NOT NULL,
+        lastCompletedDate TEXT,
         createdAt TEXT NOT NULL,
         updatedAt TEXT NOT NULL
       )
@@ -31,8 +33,9 @@ class TaskDao {
   // -----------------------------
   Future<void> insertTask(TaskModel task) async {
     final db = await AppDatabase.instance.database;
+
     await db.insert(
-      tableName,
+      table,
       task.toMap(),
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
@@ -43,8 +46,9 @@ class TaskDao {
   // -----------------------------
   Future<void> updateTask(TaskModel task) async {
     final db = await AppDatabase.instance.database;
+
     await db.update(
-      tableName,
+      table,
       task.toMap(),
       where: 'id = ?',
       whereArgs: [task.id],
@@ -56,8 +60,9 @@ class TaskDao {
   // -----------------------------
   Future<void> deleteTask(String id) async {
     final db = await AppDatabase.instance.database;
+
     await db.delete(
-      tableName,
+      table,
       where: 'id = ?',
       whereArgs: [id],
     );
@@ -68,7 +73,11 @@ class TaskDao {
   // -----------------------------
   Future<List<TaskModel>> getAllTasks() async {
     final db = await AppDatabase.instance.database;
-    final maps = await db.query(tableName, orderBy: 'createdAt DESC');
+
+    final maps = await db.query(
+      table,
+      orderBy: 'createdAt DESC',
+    );
 
     return maps.map((m) => TaskModel.fromMap(m)).toList();
   }
@@ -78,13 +87,15 @@ class TaskDao {
   // -----------------------------
   Future<TaskModel?> getTaskById(String id) async {
     final db = await AppDatabase.instance.database;
+
     final maps = await db.query(
-      tableName,
+      table,
       where: 'id = ?',
       whereArgs: [id],
     );
 
     if (maps.isEmpty) return null;
+
     return TaskModel.fromMap(maps.first);
   }
 
@@ -93,8 +104,9 @@ class TaskDao {
   // -----------------------------
   Future<List<TaskModel>> getTasksByCategory(String category) async {
     final db = await AppDatabase.instance.database;
+
     final maps = await db.query(
-      tableName,
+      table,
       where: 'category = ?',
       whereArgs: [category],
       orderBy: 'priority DESC',
@@ -104,37 +116,15 @@ class TaskDao {
   }
 
   // -----------------------------
-  // GET OVERDUE TASKS
+  // GET TASKS BY DUE DATE
   // -----------------------------
-  Future<List<TaskModel>> getOverdueTasks(DateTime now) async {
+  Future<List<TaskModel>> getTasksByDueDate(DateTime date) async {
     final db = await AppDatabase.instance.database;
 
     final maps = await db.query(
-      tableName,
-      where: 'dueDate IS NOT NULL AND completed = 0 AND dueDate < ?',
-      whereArgs: [now.toIso8601String()],
-      orderBy: 'dueDate ASC',
-    );
-
-    return maps.map((m) => TaskModel.fromMap(m)).toList();
-  }
-
-  // -----------------------------
-  // GET TASKS DUE ON SPECIFIC DATE
-  // -----------------------------
-  Future<List<TaskModel>> getTasksForDate(DateTime date) async {
-    final db = await AppDatabase.instance.database;
-
-    final start = DateTime(date.year, date.month, date.day, 0, 0);
-    final end = DateTime(date.year, date.month, date.day, 23, 59);
-
-    final maps = await db.query(
-      tableName,
-      where: 'dueDate >= ? AND dueDate <= ?',
-      whereArgs: [
-        start.toIso8601String(),
-        end.toIso8601String(),
-      ],
+      table,
+      where: 'dueDate = ?',
+      whereArgs: [date.toIso8601String()],
       orderBy: 'priority DESC',
     );
 
