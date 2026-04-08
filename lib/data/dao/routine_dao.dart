@@ -1,86 +1,85 @@
 import 'package:sqflite/sqflite.dart';
-import 'package:path/path.dart';
+import '../database/app_database.dart';
 import '../models/routine_model.dart';
 
 class RoutineDao {
-  static final RoutineDao instance = RoutineDao._internal();
-  Database? _database;
+  static const String routinesTable = 'routines';
+  static const String stepsTable = 'routine_steps';
 
-  RoutineDao._internal();
+  // -----------------------------
+  // CREATE TABLES
+  // -----------------------------
+  Future<void> createTables(Database db) async {
+    // Routines table
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS $routinesTable (
+        id TEXT PRIMARY KEY,
+        title TEXT NOT NULL,
+        description TEXT,
+        category TEXT NOT NULL,
+        priority INTEGER NOT NULL,
+        emotionalLoad INTEGER NOT NULL,
+        fatigueImpact INTEGER NOT NULL,
+        active INTEGER NOT NULL,
+        streak INTEGER NOT NULL,
+        lastCompletedDate TEXT,
+        createdAt TEXT NOT NULL,
+        updatedAt TEXT NOT NULL
+      )
+    ''');
 
-  Future<Database> get database async {
-    if (_database != null) return _database!;
-    _database = await _initDb();
-    return _database!;
-  }
-
-  Future<Database> _initDb() async {
-    final dbPath = await getDatabasesPath();
-    final path = join(dbPath, 'ciantis_routines.db');
-
-    return await openDatabase(
-      path,
-      version: 1,
-      onCreate: (db, version) async {
-        // ROUTINES TABLE
-        await db.execute('''
-          CREATE TABLE routines (
-            id TEXT PRIMARY KEY,
-            title TEXT NOT NULL,
-            description TEXT,
-            category TEXT NOT NULL,
-            createdAt INTEGER NOT NULL,
-            updatedAt INTEGER NOT NULL
-          )
-        ''');
-
-        // ROUTINE STEPS TABLE
-        await db.execute('''
-          CREATE TABLE routine_steps (
-            id TEXT PRIMARY KEY,
-            routineId TEXT NOT NULL,
-            title TEXT NOT NULL,
-            durationMinutes INTEGER,
-            isCompleted INTEGER NOT NULL,
-            emotionalNote TEXT,
-            stepOrder INTEGER NOT NULL,
-            FOREIGN KEY (routineId) REFERENCES routines (id) ON DELETE CASCADE
-          )
-        ''');
-      },
-    );
+    // Routine steps table
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS $stepsTable (
+        id TEXT PRIMARY KEY,
+        routineId TEXT NOT NULL,
+        title TEXT NOT NULL,
+        stepOrder INTEGER NOT NULL,
+        durationMinutes INTEGER NOT NULL,
+        emotionalLoad INTEGER NOT NULL,
+        fatigueImpact INTEGER NOT NULL,
+        FOREIGN KEY (routineId) REFERENCES $routinesTable(id) ON DELETE CASCADE
+      )
+    ''');
   }
 
   // -----------------------------
-  // INSERT ROUTINE + STEPS
+  // INSERT ROUTINE
   // -----------------------------
   Future<void> insertRoutine(RoutineModel routine) async {
-    final db = await database;
+    final db = await AppDatabase.instance.database;
 
     await db.insert(
-      'routines',
+      routinesTable,
       {
         'id': routine.id,
         'title': routine.title,
         'description': routine.description,
         'category': routine.category,
-        'createdAt': routine.createdAt.millisecondsSinceEpoch,
-        'updatedAt': routine.updatedAt.millisecondsSinceEpoch,
+        'priority': routine.priority,
+        'emotionalLoad': routine.emotionalLoad,
+        'fatigueImpact': routine.fatigueImpact,
+        'active': routine.active ? 1 : 0,
+        'streak': routine.streak,
+        'lastCompletedDate': routine.lastCompletedDate?.toIso8601String(),
+        'createdAt': routine.createdAt.toIso8601String(),
+        'updatedAt': routine.updatedAt.toIso8601String(),
       },
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
 
-    for (var step in routine.steps) {
+    // Insert steps
+    for (final step in routine.steps) {
       await db.insert(
-        'routine_steps',
+        stepsTable,
         {
           'id': step.id,
           'routineId': routine.id,
           'title': step.title,
-          'durationMinutes': step.durationMinutes,
-          'isCompleted': step.isCompleted ? 1 : 0,
-          'emotionalNote': step.emotionalNote,
           'stepOrder': step.order,
+          'durationMinutes': step.durationMinutes,
+          'emotionalLoad': step.emotionalLoad,
+          'fatigueImpact': step.fatigueImpact,
         },
         conflictAlgorithm: ConflictAlgorithm.replace,
       );
@@ -88,18 +87,24 @@ class RoutineDao {
   }
 
   // -----------------------------
-  // UPDATE ROUTINE + STEPS
+  // UPDATE ROUTINE
   // -----------------------------
   Future<void> updateRoutine(RoutineModel routine) async {
-    final db = await database;
+    final db = await AppDatabase.instance.database;
 
     await db.update(
-      'routines',
+      routinesTable,
       {
         'title': routine.title,
         'description': routine.description,
         'category': routine.category,
-        'updatedAt': routine.updatedAt.millisecondsSinceEpoch,
+        'priority': routine.priority,
+        'emotionalLoad': routine.emotionalLoad,
+        'fatigueImpact': routine.fatigueImpact,
+        'active': routine.active ? 1 : 0,
+        'streak': routine.streak,
+        'lastCompletedDate': routine.lastCompletedDate?.toIso8601String(),
+        'updatedAt': routine.updatedAt.toIso8601String(),
       },
       where: 'id = ?',
       whereArgs: [routine.id],
@@ -107,43 +112,44 @@ class RoutineDao {
 
     // Delete old steps
     await db.delete(
-      'routine_steps',
+      stepsTable,
       where: 'routineId = ?',
       whereArgs: [routine.id],
     );
 
     // Insert updated steps
-    for (var step in routine.steps) {
+    for (final step in routine.steps) {
       await db.insert(
-        'routine_steps',
+        stepsTable,
         {
           'id': step.id,
           'routineId': routine.id,
           'title': step.title,
-          'durationMinutes': step.durationMinutes,
-          'isCompleted': step.isCompleted ? 1 : 0,
-          'emotionalNote': step.emotionalNote,
           'stepOrder': step.order,
+          'durationMinutes': step.durationMinutes,
+          'emotionalLoad': step.emotionalLoad,
+          'fatigueImpact': step.fatigueImpact,
         },
+        conflictAlgorithm: ConflictAlgorithm.replace,
       );
     }
   }
 
   // -----------------------------
-  // DELETE ROUTINE + STEPS
+  // DELETE ROUTINE
   // -----------------------------
   Future<void> deleteRoutine(String id) async {
-    final db = await database;
+    final db = await AppDatabase.instance.database;
 
     await db.delete(
-      'routine_steps',
-      where: 'routineId = ?',
+      routinesTable,
+      where: 'id = ?',
       whereArgs: [id],
     );
 
     await db.delete(
-      'routines',
-      where: 'id = ?',
+      stepsTable,
+      where: 'routineId = ?',
       whereArgs: [id],
     );
   }
@@ -152,27 +158,22 @@ class RoutineDao {
   // GET ALL ROUTINES
   // -----------------------------
   Future<List<RoutineModel>> getAllRoutines() async {
-    final db = await database;
+    final db = await AppDatabase.instance.database;
 
     final routineMaps = await db.query(
-      'routines',
+      routinesTable,
       orderBy: 'createdAt DESC',
     );
 
     List<RoutineModel> routines = [];
 
-    for (var map in routineMaps) {
-      final steps = await _getStepsForRoutine(map['id']);
+    for (final map in routineMaps) {
+      final steps = await getStepsForRoutine(map['id']);
       routines.add(
-        RoutineModel(
-          id: map['id'],
-          title: map['title'],
-          description: map['description'],
-          category: map['category'],
-          steps: steps,
-          createdAt: DateTime.fromMillisecondsSinceEpoch(map['createdAt']),
-          updatedAt: DateTime.fromMillisecondsSinceEpoch(map['updatedAt']),
-        ),
+        RoutineModel.fromMap({
+          ...map,
+          'steps': steps.map((e) => e.toMap()).toList(),
+        }),
       );
     }
 
@@ -183,53 +184,37 @@ class RoutineDao {
   // GET ROUTINE BY ID
   // -----------------------------
   Future<RoutineModel?> getRoutineById(String id) async {
-    final db = await database;
+    final db = await AppDatabase.instance.database;
 
     final maps = await db.query(
-      'routines',
+      routinesTable,
       where: 'id = ?',
       whereArgs: [id],
     );
 
     if (maps.isEmpty) return null;
 
-    final steps = await _getStepsForRoutine(id);
+    final steps = await getStepsForRoutine(id);
 
-    final map = maps.first;
-
-    return RoutineModel(
-      id: map['id'],
-      title: map['title'],
-      description: map['description'],
-      category: map['category'],
-      steps: steps,
-      createdAt: DateTime.fromMillisecondsSinceEpoch(map['createdAt']),
-      updatedAt: DateTime.fromMillisecondsSinceEpoch(map['updatedAt']),
-    );
+    return RoutineModel.fromMap({
+      ...maps.first,
+      'steps': steps.map((e) => e.toMap()).toList(),
+    });
   }
 
   // -----------------------------
   // GET STEPS FOR ROUTINE
   // -----------------------------
-  Future<List<RoutineStep>> _getStepsForRoutine(String routineId) async {
-    final db = await database;
+  Future<List<RoutineStepModel>> getStepsForRoutine(String routineId) async {
+    final db = await AppDatabase.instance.database;
 
     final maps = await db.query(
-      'routine_steps',
+      stepsTable,
       where: 'routineId = ?',
       whereArgs: [routineId],
       orderBy: 'stepOrder ASC',
     );
 
-    return maps.map((map) {
-      return RoutineStep(
-        id: map['id'],
-        title: map['title'],
-        durationMinutes: map['durationMinutes'],
-        isCompleted: map['isCompleted'] == 1,
-        emotionalNote: map['emotionalNote'],
-        order: map['stepOrder'],
-      );
-    }).toList();
+    return maps.map((m) => RoutineStepModel.fromMap(m)).toList();
   }
 }
