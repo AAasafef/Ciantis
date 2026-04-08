@@ -24,7 +24,6 @@ class CalendarEventService {
   }) async {
     final now = DateTime.now();
 
-    // Emotional intelligence scoring
     final emotionalLoad = _calculateEmotionalLoad(category);
     final fatigueImpact = _calculateFatigueImpact(category, startTime, endTime);
 
@@ -45,18 +44,14 @@ class CalendarEventService {
 
     await _repository.addEvent(event);
 
-    // -----------------------------
-    // MODE ENGINE HOOK (semi-automatic)
-    // -----------------------------
+    // MODE ENGINE HOOK
     final suggestion = _modeEngine.evaluateModeSuggestion(
       emotionalLoad: emotionalLoad,
       fatigue: fatigueImpact,
       isNight: startTime.hour >= 19,
     );
 
-    if (suggestion != null) {
-      _modeEngine.notifyListeners(); // UI will show suggestion modal
-    }
+    _modeEngine.setSuggestion(suggestion);
   }
 
   // -----------------------------
@@ -81,18 +76,14 @@ class CalendarEventService {
 
     await _repository.updateEvent(updated);
 
-    // -----------------------------
-    // MODE ENGINE HOOK (semi-automatic)
-    // -----------------------------
+    // MODE ENGINE HOOK
     final suggestion = _modeEngine.evaluateModeSuggestion(
       emotionalLoad: updated.emotionalLoad,
       fatigue: updated.fatigueImpact,
       isNight: updated.startTime.hour >= 19,
     );
 
-    if (suggestion != null) {
-      _modeEngine.notifyListeners();
-    }
+    _modeEngine.setSuggestion(suggestion);
   }
 
   // -----------------------------
@@ -235,9 +226,6 @@ class CalendarEventService {
 
     final overloaded = emotionalSum > 20 || fatigueSum > 20;
 
-    // -----------------------------
-    // MODE ENGINE HOOK (semi-automatic)
-    // -----------------------------
     if (overloaded) {
       final suggestion = _modeEngine.evaluateModeSuggestion(
         emotionalLoad: emotionalSum,
@@ -245,9 +233,7 @@ class CalendarEventService {
         isNight: false,
       );
 
-      if (suggestion != null) {
-        _modeEngine.notifyListeners();
-      }
+      _modeEngine.setSuggestion(suggestion);
     }
 
     return overloaded;
