@@ -1,10 +1,14 @@
 import 'package:uuid/uuid.dart';
 import '../models/calendar_event_model.dart';
 import '../repositories/calendar_event_repository.dart';
+import 'mode_engine_service.dart';
 
 class CalendarEventService {
   final CalendarEventRepository _repository = CalendarEventRepository();
   final Uuid _uuid = const Uuid();
+
+  // Mode Engine (semi-automatic)
+  final ModeEngineService _modeEngine = ModeEngineService();
 
   // -----------------------------
   // CREATE EVENT
@@ -40,6 +44,19 @@ class CalendarEventService {
     );
 
     await _repository.addEvent(event);
+
+    // -----------------------------
+    // MODE ENGINE HOOK (semi-automatic)
+    // -----------------------------
+    final suggestion = _modeEngine.evaluateModeSuggestion(
+      emotionalLoad: emotionalLoad,
+      fatigue: fatigueImpact,
+      isNight: startTime.hour >= 19,
+    );
+
+    if (suggestion != null) {
+      _modeEngine.notifyListeners(); // UI will show suggestion modal
+    }
   }
 
   // -----------------------------
@@ -63,6 +80,19 @@ class CalendarEventService {
     );
 
     await _repository.updateEvent(updated);
+
+    // -----------------------------
+    // MODE ENGINE HOOK (semi-automatic)
+    // -----------------------------
+    final suggestion = _modeEngine.evaluateModeSuggestion(
+      emotionalLoad: updated.emotionalLoad,
+      fatigue: updated.fatigueImpact,
+      isNight: updated.startTime.hour >= 19,
+    );
+
+    if (suggestion != null) {
+      _modeEngine.notifyListeners();
+    }
   }
 
   // -----------------------------
@@ -144,4 +174,82 @@ class CalendarEventService {
     }
 
     if (duration > 120) base += 2;
-    if (duration > 240) base += 
+    if (duration > 240) base += 3;
+
+    return base.clamp(1, 10);
+  }
+
+  // -----------------------------
+  // SMART AVAILABILITY ENGINE
+  // -----------------------------
+  Future<List<DateTime>> getIdealSchedulingWindows(DateTime day) async {
+    final events = await _repository.getEventsInRange(
+      DateTime(day.year, day.month, day.day, 0, 0),
+      DateTime(day.year, day.month, day.day, 23, 59),
+    );
+
+    final windows = <DateTime>[];
+
+    if (events.isEmpty) {
+      return [
+        DateTime(day.year, day.month, day.day, 9, 0),
+        DateTime(day.year, day.month, day.day, 13, 0),
+        DateTime(day.year, day.month, day.day, 18, 0),
+      ];
+    }
+
+    events.sort((a, b) => a.startTime.compareTo(b.startTime));
+
+    DateTime cursor = DateTime(day.year, day.month, day.day, 8, 0);
+
+    for (final event in events) {
+      if (cursor.isBefore(event.startTime)) {
+        windows.add(cursor);
+      }
+      cursor = event.endTime;
+    }
+
+    if (cursor.isBefore(DateTime(day.year, day.month, day.day, 20, 0))) {
+      windows.add(cursor);
+    }
+
+    return windows;
+  }
+
+  // -----------------------------
+  // OVERLOAD DETECTION
+  // -----------------------------
+  Future<bool> isDayOverloaded(DateTime day) async {
+    final events = await _repository.getEventsInRange(
+      DateTime(day.year, day.month, day.day, 0, 0),
+      DateTime(day.year, day.month, day.day, 23, 59),
+    );
+
+    int emotionalSum = 0;
+    int fatigueSum = 0;
+
+    for (final e in events) {
+      emotionalSum += e.emotionalLoad;
+      fatigueSum += e.fatigueImpact;
+    }
+
+    final overloaded = emotionalSum > 20 || fatigueSum > 20;
+
+    // -----------------------------
+    // MODE ENGINE HOOK (semi-automatic)
+    // -----------------------------
+    if (overloaded) {
+      final suggestion = _modeEngine.evaluateModeSuggestion(
+        emotionalLoad: emotionalSum,
+        fatigue: fatigueSum,
+        isNight: false,
+      );
+
+      if (suggestion != null) {
+        _modeEngine.notifyListeners();
+      }
+    }
+
+    return overloaded;
+  }
+}
