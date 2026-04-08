@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../engine/engine.dart';
+import '../../ui/home/home_screen.dart';
 
 class CiantisSystemShell extends StatefulWidget {
   const CiantisSystemShell({super.key});
@@ -41,17 +42,6 @@ class _CiantisSystemShellState extends State<CiantisSystemShell> {
       );
     }
 
-    return const Scaffold(
-      body: Center(
-        child: Text(
-          'Ciantis System Shell Loaded',
-          style: TextStyle(
-            fontSize: 22,
-            fontWeight: FontWeight.w600,
-            color: Color(0xFF8A4FFF),
-          ),
-        ),
-      ),
-    );
+    return const CiantisHomeScreen();
   }
 }
