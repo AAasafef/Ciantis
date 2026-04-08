@@ -14,25 +14,26 @@ class TaskService {
   Future<void> createTask({
     required String title,
     String? description,
-    DateTime? dueDate,
     required String category,
     required int priority,
+    required int emotionalLoad,
+    required int fatigueImpact,
+    DateTime? dueDate,
   }) async {
     final now = DateTime.now();
-
-    final emotionalLoad = _calculateEmotionalLoad(category, priority);
-    final fatigueImpact = _calculateFatigueImpact(category, priority);
 
     final task = TaskModel(
       id: _uuid.v4(),
       title: title.trim(),
       description: description?.trim(),
-      dueDate: dueDate,
-      completed: false,
       category: category,
       priority: priority,
-      emotionalLoad: emotionalLoad,
-      fatigueImpact: fatigueImpact,
+      emotionalLoad: emotionalLoad.clamp(1, 10),
+      fatigueImpact: fatigueImpact.clamp(1, 10),
+      dueDate: dueDate,
+      completed: false,
+      streak: 0,
+      lastCompletedDate: null,
       createdAt: now,
       updatedAt: now,
     );
@@ -54,8 +55,6 @@ class TaskService {
   // -----------------------------
   Future<void> updateTask(TaskModel task) async {
     final updated = task.copyWith(
-      emotionalLoad: _calculateEmotionalLoad(task.category, task.priority),
-      fatigueImpact: _calculateFatigueImpact(task.category, task.priority),
       updatedAt: DateTime.now(),
     );
 
@@ -93,37 +92,55 @@ class TaskService {
   }
 
   // -----------------------------
-  // GET TASKS BY CATEGORY
+  // COMPLETE TASK (STREAK LOGIC)
   // -----------------------------
-  Future<List<TaskModel>> getTasksByCategory(String category) async {
-    return await _repository.getTasksByCategory(category);
-  }
+  Future<void> completeTask(String id) async {
+    final task = await _repository.getTaskById(id);
+    if (task == null) return;
 
-  // -----------------------------
-  // GET OVERDUE TASKS
-  // -----------------------------
-  Future<List<TaskModel>> getOverdueTasks() async {
-    return await _repository.getOverdueTasks(DateTime.now());
-  }
+    final now = DateTime.now();
+    final last = task.lastCompletedDate;
 
-  // -----------------------------
-  // GET TASKS FOR SPECIFIC DATE
-  // -----------------------------
-  Future<List<TaskModel>> getTasksForDate(DateTime date) async {
-    return await _repository.getTasksForDate(date);
+    int newStreak = task.streak;
+
+    if (last == null) {
+      newStreak = 1;
+    } else {
+      final lastDay = DateTime(last.year, last.month, last.day);
+      final today = DateTime(now.year, now.month, now.day);
+
+      if (today.difference(lastDay).inDays == 1) {
+        newStreak += 1; // continued streak
+      } else if (today.difference(lastDay).inDays > 1) {
+        newStreak = 1; // streak reset
+      }
+    }
+
+    final updated = task.copyWith(
+      completed: true,
+      streak: newStreak,
+      lastCompletedDate: now,
+      updatedAt: now,
+    );
+
+    await _repository.updateTask(updated);
+
+    // MODE ENGINE HOOK
+    final suggestion = _modeEngine.evaluateModeSuggestion(
+      emotionalLoad: updated.emotionalLoad,
+      fatigue: updated.fatigueImpact,
+      isNight: now.hour >= 19,
+    );
+
+    _modeEngine.setSuggestion(suggestion);
   }
 
   // -----------------------------
   // SMART TASK SUGGESTIONS
   // -----------------------------
   Future<List<TaskModel>> getSmartSuggestions() async {
-    final tasks = await _repository.getAllTasks();
+    final tasks = await getAllTasks();
 
-    // Prioritize:
-    // 1. Overdue tasks
-    // 2. High priority tasks
-    // 3. High emotional load tasks
-    // 4. Tasks due soon
     tasks.sort((a, b) {
       int scoreA = _taskScore(a);
       int scoreB = _taskScore(b);
@@ -136,11 +153,6 @@ class TaskService {
   int _taskScore(TaskModel task) {
     int score = 0;
 
-    // Overdue = highest urgency
-    if (task.dueDate != null && task.dueDate!.isBefore(DateTime.now())) {
-      score += 50;
-    }
-
     // Priority weighting
     score += task.priority * 10;
 
@@ -150,49 +162,19 @@ class TaskService {
     // Fatigue impact weighting
     score += task.fatigueImpact * 3;
 
-    // Due soon weighting
+    // Streak weighting
+    score += task.streak * 2;
+
+    // Due date weighting (sooner = higher score)
     if (task.dueDate != null) {
       final diff = task.dueDate!.difference(DateTime.now()).inHours;
-      if (diff < 24) score += 20;
-      if (diff < 72) score += 10;
+      if (diff <= 0) {
+        score += 50; // overdue = urgent
+      } else {
+        score += (100 ~/ diff.clamp(1, 100)); // closer = higher
+      }
     }
 
     return score;
-  }
-
-  // -----------------------------
-  // EMOTIONAL LOAD ENGINE
-  // -----------------------------
-  int _calculateEmotionalLoad(String category, int priority) {
-    int base = switch (category) {
-      'school' => 7,
-      'kids' => 6,
-      'salon' => 5,
-      'health' => 8,
-      'personal' => 3,
-      _ => 4,
-    };
-
-    base += (priority - 3); // priority 1–5 shifts emotional weight
-
-    return base.clamp(1, 10);
-  }
-
-  // -----------------------------
-  // FATIGUE IMPACT ENGINE
-  // -----------------------------
-  int _calculateFatigueImpact(String category, int priority) {
-    int base = switch (category) {
-      'school' => 6,
-      'kids' => 7,
-      'salon' => 5,
-      'health' => 4,
-      'personal' => 2,
-      _ => 3,
-    };
-
-    base += (priority ~/ 2);
-
-    return base.clamp(1, 10);
   }
 }
