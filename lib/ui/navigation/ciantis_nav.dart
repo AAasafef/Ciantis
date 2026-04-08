@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../home/home_screen.dart';
 import '../modes/modes_screen.dart';
+import '../ai/ai_screen.dart';
 
 class CiantisNav extends StatefulWidget {
   const CiantisNav({super.key});
@@ -13,10 +14,10 @@ class _CiantisNavState extends State<CiantisNav> {
   int _index = 0;
 
   final List<Widget> _screens = const [
-    CiantisHomeScreen(),
-    ModesScreen(),      // Modes
-    Placeholder(),      // Future: Intelligence
-    Placeholder(),      // Future: Settings
+    CiantisHomeScreen(),   // Home
+    ModesScreen(),         // Modes
+    AiScreen(),            // AI
+    Placeholder(),         // Settings (coming soon)
   ];
 
   @override
