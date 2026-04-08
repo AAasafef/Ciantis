@@ -14,9 +14,12 @@ class _TaskCreateScreenState extends State<TaskCreateScreen> {
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
 
-  DateTime? _selectedDueDate;
   String _selectedCategory = 'personal';
   int _selectedPriority = 3;
+  int _emotionalLoad = 5;
+  int _fatigueImpact = 5;
+
+  DateTime? _dueDate;
 
   final List<String> _categories = [
     'school',
@@ -26,22 +29,28 @@ class _TaskCreateScreenState extends State<TaskCreateScreen> {
     'personal',
   ];
 
+  // -----------------------------
+  // PICK DUE DATE
+  // -----------------------------
   Future<void> _pickDueDate() async {
     final now = DateTime.now();
     final picked = await showDatePicker(
       context: context,
       initialDate: now,
-      firstDate: now.subtract(const Duration(days: 0)),
-      lastDate: now.add(const Duration(days: 365)),
+      firstDate: now.subtract(const Duration(days: 365)),
+      lastDate: now.add(const Duration(days: 365 * 5)),
     );
 
     if (picked != null) {
       setState(() {
-        _selectedDueDate = picked;
+        _dueDate = picked;
       });
     }
   }
 
+  // -----------------------------
+  // SAVE TASK
+  // -----------------------------
   Future<void> _saveTask() async {
     final title = _titleController.text.trim();
     if (title.isEmpty) return;
@@ -49,9 +58,11 @@ class _TaskCreateScreenState extends State<TaskCreateScreen> {
     await _taskService.createTask(
       title: title,
       description: _descriptionController.text.trim(),
-      dueDate: _selectedDueDate,
       category: _selectedCategory,
       priority: _selectedPriority,
+      emotionalLoad: _emotionalLoad,
+      fatigueImpact: _fatigueImpact,
+      dueDate: _dueDate,
     );
 
     if (mounted) Navigator.pop(context);
@@ -123,6 +134,36 @@ class _TaskCreateScreenState extends State<TaskCreateScreen> {
     );
   }
 
+  Widget _loadSelector({
+    required String label,
+    required int value,
+    required Function(int) onChanged,
+  }) {
+    return Row(
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            color: Color(0xFF5A4A6A),
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        const Spacer(),
+        DropdownButton<int>(
+          value: value,
+          items: List.generate(
+            10,
+            (i) => DropdownMenuItem(
+              value: i + 1,
+              child: Text('${i + 1}'),
+            ),
+          ),
+          onChanged: (v) => onChanged(v!),
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -157,7 +198,7 @@ class _TaskCreateScreenState extends State<TaskCreateScreen> {
             TextField(
               controller: _titleController,
               decoration: InputDecoration(
-                hintText: 'Enter task title',
+                hintText: 'Enter task name',
                 filled: true,
                 fillColor: Colors.white,
                 contentPadding:
@@ -199,7 +240,55 @@ class _TaskCreateScreenState extends State<TaskCreateScreen> {
 
             const SizedBox(height: 20),
 
-            // Due Date
+            // Category
+            const Text(
+              'Category',
+              style: TextStyle(
+                color: Color(0xFF5A4A6A),
+                fontWeight: FontWeight.w600,
+                fontSize: 15,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Wrap(
+              children: _categories.map(_categoryChip).toList(),
+            ),
+
+            const SizedBox(height: 20),
+
+            // Priority
+            const Text(
+              'Priority',
+              style: TextStyle(
+                color: Color(0xFF5A4A6A),
+                fontWeight: FontWeight.w600,
+                fontSize: 15,
+              ),
+            ),
+            const SizedBox(height: 8),
+            _prioritySelector(),
+
+            const SizedBox(height: 20),
+
+            // Emotional load
+            _loadSelector(
+              label: "Emotional Load",
+              value: _emotionalLoad,
+              onChanged: (v) => setState(() => _emotionalLoad = v),
+            ),
+
+            const SizedBox(height: 16),
+
+            // Fatigue impact
+            _loadSelector(
+              label: "Fatigue Impact",
+              value: _fatigueImpact,
+              onChanged: (v) => setState(() => _fatigueImpact = v),
+            ),
+
+            const SizedBox(height: 20),
+
+            // Due date
             const Text(
               'Due Date',
               style: TextStyle(
@@ -217,8 +306,50 @@ class _TaskCreateScreenState extends State<TaskCreateScreen> {
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    color: const Color(0xFFE8E2F0),
+                    width: 1,
+                  ),
                 ),
-                child: Row(
-                  children: [
-                    Icon(Icons.calendar_today,
-                        color: const Color
+                child: Text(
+                  _dueDate == null
+                      ? "No due date"
+                      : "${_dueDate!.month}/${_dueDate!.day}/${_dueDate!.year}",
+                  style: const TextStyle(
+                    color: Color(0xFF5A4A6A),
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 40),
+
+            // Save Button
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: _saveTask,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF8A4FFF),
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                ),
+                child: const Text(
+                  'Save Task',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 16,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
