@@ -5,51 +5,62 @@ class AppointmentRepository {
   final AppointmentDao _dao = AppointmentDao();
 
   // -----------------------------
-  // ADD APPOINTMENT
+  // ADD
   // -----------------------------
-  Future<void> addAppointment(AppointmentModel appointment) async {
-    await _dao.insertAppointment(appointment);
+  Future<void> addAppointment(AppointmentModel appt) async {
+    await _dao.insertAppointment(appt);
   }
 
   // -----------------------------
-  // UPDATE APPOINTMENT
+  // UPDATE
   // -----------------------------
-  Future<void> updateAppointment(AppointmentModel appointment) async {
-    await _dao.updateAppointment(appointment);
+  Future<void> updateAppointment(AppointmentModel appt) async {
+    await _dao.updateAppointment(appt);
   }
 
   // -----------------------------
-  // DELETE APPOINTMENT
+  // DELETE
   // -----------------------------
   Future<void> deleteAppointment(String id) async {
     await _dao.deleteAppointment(id);
   }
 
   // -----------------------------
-  // GET ALL APPOINTMENTS
+  // GET ALL
   // -----------------------------
   Future<List<AppointmentModel>> getAllAppointments() async {
     return await _dao.getAllAppointments();
   }
 
   // -----------------------------
-  // GET APPOINTMENT BY ID
-  // -----------------------------
-  Future<AppointmentModel?> getAppointmentById(String id) async {
-    return await _dao.getAppointmentById(id);
-  }
-
-  // -----------------------------
-  // GET APPOINTMENTS BY DATE
+  // GET BY DATE
   // -----------------------------
   Future<List<AppointmentModel>> getAppointmentsByDate(DateTime date) async {
     return await _dao.getAppointmentsByDate(date);
   }
 
   // -----------------------------
-  // GET APPOINTMENTS BY CATEGORY
+  // UPCOMING
   // -----------------------------
-  Future<List<AppointmentModel>> getAppointmentsByCategory(String category) async {
-    return await _dao.getAppointmentsByCategory(category);
+  Future<List<AppointmentModel>> getUpcomingAppointments() async {
+    return await _dao.getUpcomingAppointments();
+  }
+
+  // -----------------------------
+  // SEARCH
+  // -----------------------------
+  Future<List<AppointmentModel>> searchAppointments(String query) async {
+    return await _dao.searchAppointments(query);
+  }
+
+  // -----------------------------
+  // SORTING
+  // -----------------------------
+  Future<List<AppointmentModel>> sortByEmotionalLoad({bool ascending = true}) async {
+    return await _dao.sortByEmotionalLoad(ascending: ascending);
+  }
+
+  Future<List<AppointmentModel>> sortByFatigueImpact({bool ascending = true}) async {
+    return await _dao.sortByFatigueImpact(ascending: ascending);
   }
 }
