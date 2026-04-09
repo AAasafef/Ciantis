@@ -20,8 +20,9 @@ class AppointmentDao {
         endTime TEXT NOT NULL,
         emotionalLoad INTEGER NOT NULL,
         fatigueImpact INTEGER NOT NULL,
+        isCompleted INTEGER NOT NULL,
         reminderEnabled INTEGER NOT NULL,
-        completed INTEGER NOT NULL,
+        reminderMinutesBefore INTEGER,
         createdAt TEXT NOT NULL,
         updatedAt TEXT NOT NULL
       )
@@ -29,34 +30,34 @@ class AppointmentDao {
   }
 
   // -----------------------------
-  // INSERT APPOINTMENT
+  // INSERT
   // -----------------------------
-  Future<void> insertAppointment(AppointmentModel appointment) async {
+  Future<void> insertAppointment(AppointmentModel appt) async {
     final db = await AppDatabase.instance.database;
 
     await db.insert(
       table,
-      appointment.toMap(),
+      appt.toMap(),
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
   }
 
   // -----------------------------
-  // UPDATE APPOINTMENT
+  // UPDATE
   // -----------------------------
-  Future<void> updateAppointment(AppointmentModel appointment) async {
+  Future<void> updateAppointment(AppointmentModel appt) async {
     final db = await AppDatabase.instance.database;
 
     await db.update(
       table,
-      appointment.toMap(),
+      appt.toMap(),
       where: 'id = ?',
-      whereArgs: [appointment.id],
+      whereArgs: [appt.id],
     );
   }
 
   // -----------------------------
-  // DELETE APPOINTMENT
+  // DELETE
   // -----------------------------
   Future<void> deleteAppointment(String id) async {
     final db = await AppDatabase.instance.database;
@@ -69,7 +70,7 @@ class AppointmentDao {
   }
 
   // -----------------------------
-  // GET ALL APPOINTMENTS
+  // GET ALL
   // -----------------------------
   Future<List<AppointmentModel>> getAllAppointments() async {
     final db = await AppDatabase.instance.database;
@@ -83,24 +84,7 @@ class AppointmentDao {
   }
 
   // -----------------------------
-  // GET APPOINTMENT BY ID
-  // -----------------------------
-  Future<AppointmentModel?> getAppointmentById(String id) async {
-    final db = await AppDatabase.instance.database;
-
-    final maps = await db.query(
-      table,
-      where: 'id = ?',
-      whereArgs: [id],
-    );
-
-    if (maps.isEmpty) return null;
-
-    return AppointmentModel.fromMap(maps.first);
-  }
-
-  // -----------------------------
-  // GET APPOINTMENTS BY DATE
+  // GET BY DATE
   // -----------------------------
   Future<List<AppointmentModel>> getAppointmentsByDate(DateTime date) async {
     final db = await AppDatabase.instance.database;
@@ -122,17 +106,70 @@ class AppointmentDao {
   }
 
   // -----------------------------
-  // GET APPOINTMENTS BY CATEGORY
+  // UPCOMING APPOINTMENTS
   // -----------------------------
-  Future<List<AppointmentModel>> getAppointmentsByCategory(
-      String category) async {
+  Future<List<AppointmentModel>> getUpcomingAppointments() async {
+    final db = await AppDatabase.instance.database;
+
+    final now = DateTime.now().toIso8601String();
+
+    final maps = await db.query(
+      table,
+      where: 'startTime >= ?',
+      whereArgs: [now],
+      orderBy: 'startTime ASC',
+    );
+
+    return maps.map((m) => AppointmentModel.fromMap(m)).toList();
+  }
+
+  // -----------------------------
+  // SEARCH
+  // -----------------------------
+  Future<List<AppointmentModel>> searchAppointments(String query) async {
     final db = await AppDatabase.instance.database;
 
     final maps = await db.query(
       table,
-      where: 'category = ?',
-      whereArgs: [category],
+      where: '''
+        title LIKE ? OR 
+        description LIKE ? OR 
+        location LIKE ?
+      ''',
+      whereArgs: [
+        '%$query%',
+        '%$query%',
+        '%$query%',
+      ],
       orderBy: 'startTime ASC',
+    );
+
+    return maps.map((m) => AppointmentModel.fromMap(m)).toList();
+  }
+
+  // -----------------------------
+  // SORT BY EMOTIONAL LOAD
+  // -----------------------------
+  Future<List<AppointmentModel>> sortByEmotionalLoad({bool ascending = true}) async {
+    final db = await AppDatabase.instance.database;
+
+    final maps = await db.query(
+      table,
+      orderBy: 'emotionalLoad ${ascending ? 'ASC' : 'DESC'}',
+    );
+
+    return maps.map((m) => AppointmentModel.fromMap(m)).toList();
+  }
+
+  // -----------------------------
+  // SORT BY FATIGUE IMPACT
+  // -----------------------------
+  Future<List<AppointmentModel>> sortByFatigueImpact({bool ascending = true}) async {
+    final db = await AppDatabase.instance.database;
+
+    final maps = await db.query(
+      table,
+      orderBy: 'fatigueImpact ${ascending ? 'ASC' : 'DESC'}',
     );
 
     return maps.map((m) => AppointmentModel.fromMap(m)).toList();
