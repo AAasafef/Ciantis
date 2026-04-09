@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../data/services/routine_service.dart';
-import '../../data/models/routine_model.dart';
+import '../../data/models/routine_step_model.dart';
 
 class RoutineCreateScreen extends StatefulWidget {
   const RoutineCreateScreen({super.key});
@@ -12,222 +12,189 @@ class RoutineCreateScreen extends StatefulWidget {
 class _RoutineCreateScreenState extends State<RoutineCreateScreen> {
   final RoutineService _routineService = RoutineService();
 
-  final TextEditingController _titleController = TextEditingController();
-  final TextEditingController _descriptionController = TextEditingController();
+  final TextEditingController _titleCtrl = TextEditingController();
+  final TextEditingController _descCtrl = TextEditingController();
 
-  String _selectedCategory = 'personal';
-  int _selectedPriority = 3;
+  String _category = "morning";
 
   List<RoutineStepModel> _steps = [];
 
+  bool _saving = false;
+
   final List<String> _categories = [
-    'school',
-    'kids',
-    'salon',
-    'health',
-    'personal',
+    "morning",
+    "night",
+    "self-care",
+    "kids",
+    "school",
+    "salon",
+    "health",
+    "personal",
   ];
 
   // -----------------------------
-  // ADD STEP
+  // ADD STEP DIALOG
   // -----------------------------
-  void _addStep() async {
-    final step = await showDialog<RoutineStepModel>(
+  Future<void> _addStepDialog() async {
+    final titleCtrl = TextEditingController();
+    final durationCtrl = TextEditingController();
+    int emotional = 0;
+    int fatigue = 0;
+
+    await showDialog(
       context: context,
-      builder: (_) => _StepEditorDialog(
-        stepNumber: _steps.length + 1,
-      ),
+      builder: (_) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: const Text(
+            "Add Step",
+            style: TextStyle(
+              color: Color(0xFF8A4FFF),
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          content: SizedBox(
+            width: 350,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: titleCtrl,
+                  decoration: const InputDecoration(labelText: "Step title"),
+                ),
+                TextField(
+                  controller: durationCtrl,
+                  keyboardType: TextInputType.number,
+                  decoration:
+                      const InputDecoration(labelText: "Duration (minutes)"),
+                ),
+                const SizedBox(height: 10),
+                Row(
+                  children: [
+                    const Text("Emotional Load"),
+                    const Spacer(),
+                    DropdownButton<int>(
+                      value: emotional,
+                      items: [0, 1, 2, 3, 4, 5]
+                          .map((e) => DropdownMenuItem(
+                                value: e,
+                                child: Text(e.toString()),
+                              ))
+                          .toList(),
+                      onChanged: (v) {
+                        setState(() => emotional = v ?? 0);
+                      },
+                    ),
+                  ],
+                ),
+                Row(
+                  children: [
+                    const Text("Fatigue Impact"),
+                    const Spacer(),
+                    DropdownButton<int>(
+                      value: fatigue,
+                      items: [0, 1, 2, 3, 4, 5]
+                          .map((e) => DropdownMenuItem(
+                                value: e,
+                                child: Text(e.toString()),
+                              ))
+                          .toList(),
+                      onChanged: (v) {
+                        setState(() => fatigue = v ?? 0);
+                      },
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              child: const Text("Cancel"),
+              onPressed: () => Navigator.pop(context),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF8A4FFF),
+              ),
+              child: const Text("Add"),
+              onPressed: () {
+                if (titleCtrl.text.trim().isEmpty ||
+                    durationCtrl.text.trim().isEmpty) return;
+
+                final step = RoutineStepModel(
+                  id: UniqueKey().toString(),
+                  routineId: "",
+                  title: titleCtrl.text.trim(),
+                  duration: int.tryParse(durationCtrl.text.trim()) ?? 0,
+                  emotionalLoad: emotional,
+                  fatigueImpact: fatigue,
+                  orderIndex: _steps.length,
+                  completed: false,
+                  createdAt: DateTime.now(),
+                  updatedAt: DateTime.now(),
+                );
+
+                setState(() => _steps.add(step));
+                Navigator.pop(context);
+              },
+            ),
+          ],
+        );
+      },
     );
-
-    if (step != null) {
-      setState(() {
-        _steps.add(step);
-      });
-    }
-  }
-
-  // -----------------------------
-  // EDIT STEP
-  // -----------------------------
-  void _editStep(int index) async {
-    final updated = await showDialog<RoutineStepModel>(
-      context: context,
-      builder: (_) => _StepEditorDialog(
-        stepNumber: index + 1,
-        existing: _steps[index],
-      ),
-    );
-
-    if (updated != null) {
-      setState(() {
-        _steps[index] = updated;
-      });
-    }
-  }
-
-  // -----------------------------
-  // DELETE STEP
-  // -----------------------------
-  void _deleteStep(int index) {
-    setState(() {
-      _steps.removeAt(index);
-    });
   }
 
   // -----------------------------
   // SAVE ROUTINE
   // -----------------------------
   Future<void> _saveRoutine() async {
-    final title = _titleController.text.trim();
-    if (title.isEmpty || _steps.isEmpty) return;
+    if (_titleCtrl.text.trim().isEmpty) return;
 
-    await _routineService.createRoutine(
-      title: title,
-      description: _descriptionController.text.trim(),
-      category: _selectedCategory,
-      priority: _selectedPriority,
-      steps: _steps,
+    setState(() => _saving = true);
+
+    final routineId = await _routineService.createRoutine(
+      title: _titleCtrl.text.trim(),
+      description: _descCtrl.text.trim().isEmpty
+          ? null
+          : _descCtrl.text.trim(),
+      category: _category,
     );
 
-    if (mounted) Navigator.pop(context);
+    for (int i = 0; i < _steps.length; i++) {
+      final s = _steps[i];
+      await _routineService.addStep(
+        routineId: routineId,
+        title: s.title,
+        duration: s.duration,
+        emotionalLoad: s.emotionalLoad,
+        fatigueImpact: s.fatigueImpact,
+        orderIndex: i,
+      );
+    }
+
+    setState(() => _saving = false);
+    Navigator.pop(context);
   }
 
-  Widget _categoryChip(String category) {
-    final selected = category == _selectedCategory;
+  // -----------------------------
+  // REORDER STEPS
+  // -----------------------------
+  void _onReorder(int oldIndex, int newIndex) {
+    setState(() {
+      if (newIndex > oldIndex) newIndex -= 1;
+      final item = _steps.removeAt(oldIndex);
+      _steps.insert(newIndex, item);
 
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          _selectedCategory = category;
-        });
-      },
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-        margin: const EdgeInsets.only(right: 10, bottom: 10),
-        decoration: BoxDecoration(
-          color: selected
-              ? const Color(0xFF8A4FFF)
-              : const Color(0xFFE8E2F0),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Text(
-          category[0].toUpperCase() + category.substring(1),
-          style: TextStyle(
-            color: selected ? Colors.white : const Color(0xFF5A4A6A),
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-      ),
-    );
+      for (int i = 0; i < _steps.length; i++) {
+        _steps[i] = _steps[i].copyWith(orderIndex: i);
+      }
+    });
   }
 
-  Widget _prioritySelector() {
-    return Row(
-      children: List.generate(5, (i) {
-        final level = i + 1;
-        final selected = level == _selectedPriority;
-
-        return GestureDetector(
-          onTap: () {
-            setState(() {
-              _selectedPriority = level;
-            });
-          },
-          child: Container(
-            margin: const EdgeInsets.only(right: 10),
-            width: 34,
-            height: 34,
-            decoration: BoxDecoration(
-              color: selected
-                  ? const Color(0xFF8A4FFF)
-                  : const Color(0xFFE8E2F0),
-              shape: BoxShape.circle,
-            ),
-            child: Center(
-              child: Text(
-                '$level',
-                style: TextStyle(
-                  color: selected ? Colors.white : const Color(0xFF5A4A6A),
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ),
-          ),
-        );
-      }),
-    );
-  }
-
-  Widget _stepTile(int index, RoutineStepModel step) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 14),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(
-          color: const Color(0xFFE8E2F0),
-          width: 1,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 8,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          // Step number
-          Container(
-            width: 32,
-            height: 32,
-            decoration: BoxDecoration(
-              color: const Color(0xFF8A4FFF).withOpacity(0.12),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Center(
-              child: Text(
-                '${index + 1}',
-                style: const TextStyle(
-                  color: Color(0xFF8A4FFF),
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ),
-          ),
-
-          const SizedBox(width: 16),
-
-          // Step title
-          Expanded(
-            child: Text(
-              step.title,
-              style: const TextStyle(
-                color: Color(0xFF5A4A6A),
-                fontWeight: FontWeight.w700,
-                fontSize: 15,
-              ),
-            ),
-          ),
-
-          // Edit
-          IconButton(
-            icon: const Icon(Icons.edit, color: Color(0xFF8A4FFF)),
-            onPressed: () => _editStep(index),
-          ),
-
-          // Delete
-          IconButton(
-            icon: const Icon(Icons.delete, color: Color(0xFF8A4FFF)),
-            onPressed: () => _deleteStep(index),
-          ),
-        ],
-      ),
-    );
-  }
-
+  // -----------------------------
+  // UI
+  // -----------------------------
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -237,344 +204,164 @@ class _RoutineCreateScreenState extends State<RoutineCreateScreen> {
         elevation: 0,
         centerTitle: true,
         title: const Text(
-          'New Routine',
+          "Create Routine",
           style: TextStyle(
             color: Color(0xFF8A4FFF),
             fontWeight: FontWeight.w600,
           ),
         ),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Title
-            const Text(
-              'Title',
-              style: TextStyle(
-                color: Color(0xFF5A4A6A),
-                fontWeight: FontWeight.w600,
-                fontSize: 15,
-              ),
-            ),
-            const SizedBox(height: 8),
-            TextField(
-              controller: _titleController,
-              decoration: InputDecoration(
-                hintText: 'Enter routine name',
-                filled: true,
-                fillColor: Colors.white,
-                contentPadding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(14),
-                  borderSide: BorderSide.none,
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 20),
-
-            // Description
-            const Text(
-              'Description',
-              style: TextStyle(
-                color: Color(0xFF5A4A6A),
-                fontWeight: FontWeight.w600,
-                fontSize: 15,
-              ),
-            ),
-            const SizedBox(height: 8),
-            TextField(
-              controller: _descriptionController,
-              maxLines: 3,
-              decoration: InputDecoration(
-                hintText: 'Optional',
-                filled: true,
-                fillColor: Colors.white,
-                contentPadding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(14),
-                  borderSide: BorderSide.none,
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 20),
-
-            // Category
-            const Text(
-              'Category',
-              style: TextStyle(
-                color: Color(0xFF5A4A6A),
-                fontWeight: FontWeight.w600,
-                fontSize: 15,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Wrap(
-              children: _categories.map(_categoryChip).toList(),
-            ),
-
-            const SizedBox(height: 20),
-
-            // Priority
-            const Text(
-              'Priority',
-              style: TextStyle(
-                color: Color(0xFF5A4A6A),
-                fontWeight: FontWeight.w600,
-                fontSize: 15,
-              ),
-            ),
-            const SizedBox(height: 8),
-            _prioritySelector(),
-
-            const SizedBox(height: 30),
-
-            // Steps
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  'Steps',
-                  style: TextStyle(
-                    color: Color(0xFF5A4A6A),
-                    fontWeight: FontWeight.w700,
-                    fontSize: 17,
-                  ),
-                ),
-                TextButton(
-                  onPressed: _addStep,
-                  child: const Text(
-                    '+ Add Step',
-                    style: TextStyle(
-                      color: Color(0xFF8A4FFF),
-                      fontWeight: FontWeight.w700,
+      body: _saving
+          ? const Center(child: CircularProgressIndicator())
+          : SingleChildScrollView(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                children: [
+                  TextField(
+                    controller: _titleCtrl,
+                    decoration: const InputDecoration(
+                      labelText: "Routine Title",
                     ),
                   ),
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 10),
-
-            if (_steps.isEmpty)
-              const Text(
-                'No steps added yet',
-                style: TextStyle(
-                  color: Color(0xFF7A6F8F),
-                  fontSize: 14,
-                ),
-              ),
-
-            ...List.generate(_steps.length, (i) => _stepTile(i, _steps[i])),
-
-            const SizedBox(height: 40),
-
-            // Save Button
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: _saveRoutine,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF8A4FFF),
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: _descCtrl,
+                    decoration: const InputDecoration(
+                      labelText: "Description (optional)",
+                    ),
+                    maxLines: 2,
                   ),
-                ),
-                child: const Text(
-                  'Save Routine',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 16,
+                  const SizedBox(height: 16),
+
+                  // Category
+                  Row(
+                    children: [
+                      const Text(
+                        "Category",
+                        style: TextStyle(
+                          color: Color(0xFF5A4A6A),
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const Spacer(),
+                      DropdownButton<String>(
+                        value: _category,
+                        items: _categories
+                            .map((c) => DropdownMenuItem(
+                                  value: c,
+                                  child: Text(
+                                    c[0].toUpperCase() + c.substring(1),
+                                  ),
+                                ))
+                            .toList(),
+                        onChanged: (v) {
+                          setState(() => _category = v ?? "morning");
+                        },
+                      ),
+                    ],
                   ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
 
-// ------------------------------------------------------------
-// STEP EDITOR DIALOG
-// ------------------------------------------------------------
-class _StepEditorDialog extends StatefulWidget {
-  final int stepNumber;
-  final RoutineStepModel? existing;
+                  const SizedBox(height: 30),
 
-  const _StepEditorDialog({
-    required this.stepNumber,
-    this.existing,
-  });
-
-  @override
-  State<_StepEditorDialog> createState() => _StepEditorDialogState();
-}
-
-class _StepEditorDialogState extends State<_StepEditorDialog> {
-  final RoutineService _routineService = RoutineService();
-
-  late TextEditingController _titleController;
-  late TextEditingController _durationController;
-
-  int _emotionalLoad = 5;
-  int _fatigueImpact = 5;
-
-  @override
-  void initState() {
-    super.initState();
-
-    _titleController =
-        TextEditingController(text: widget.existing?.title ?? '');
-    _durationController = TextEditingController(
-        text: widget.existing?.durationMinutes.toString() ?? '5');
-
-    _emotionalLoad = widget.existing?.emotionalLoad ?? 5;
-    _fatigueImpact = widget.existing?.fatigueImpact ?? 5;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      backgroundColor: const Color(0xFFF7F4F9),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(18),
-      ),
-      title: Text(
-        'Step ${widget.stepNumber}',
-        style: const TextStyle(
-          color: Color(0xFF5A4A6A),
-          fontWeight: FontWeight.w700,
-        ),
-      ),
-      content: SingleChildScrollView(
-        child: Column(
-          children: [
-            // Title
-            TextField(
-              controller: _titleController,
-              decoration: const InputDecoration(
-                labelText: 'Step Title',
-              ),
-            ),
-
-            const SizedBox(height: 16),
-
-            // Duration
-            TextField(
-              controller: _durationController,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                labelText: 'Duration (minutes)',
-              ),
-            ),
-
-            const SizedBox(height: 16),
-
-            // Emotional load
-            Row(
-              children: [
-                const Text(
-                  'Emotional Load',
-                  style: TextStyle(
-                    color: Color(0xFF5A4A6A),
-                    fontWeight: FontWeight.w600,
+                  // Steps header
+                  Row(
+                    children: [
+                      const Text(
+                        "Steps",
+                        style: TextStyle(
+                          color: Color(0xFF5A4A6A),
+                          fontWeight: FontWeight.w700,
+                          fontSize: 16,
+                        ),
+                      ),
+                      const Spacer(),
+                      IconButton(
+                        icon: const Icon(Icons.add_circle,
+                            color: Color(0xFF8A4FFF)),
+                        onPressed: _addStepDialog,
+                      ),
+                    ],
                   ),
-                ),
-                const Spacer(),
-                DropdownButton<int>(
-                  value: _emotionalLoad,
-                  items: List.generate(
-                    10,
-                    (i) => DropdownMenuItem(
-                      value: i + 1,
-                      child: Text('${i + 1}'),
+
+                  const SizedBox(height: 10),
+
+                  // Steps list
+                  if (_steps.isEmpty)
+                    const Text(
+                      "No steps yet",
+                      style: TextStyle(
+                        color: Color(0xFF7A6F8F),
+                        fontSize: 14,
+                      ),
+                    )
+                  else
+                    ReorderableListView(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      onReorder: _onReorder,
+                      children: _steps.map((s) {
+                        return Container(
+                          key: ValueKey(s.id),
+                          margin: const EdgeInsets.only(bottom: 12),
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(16),
+                            border:
+                                Border.all(color: const Color(0xFFE8E2F0)),
+                          ),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  s.title,
+                                  style: const TextStyle(
+                                    color: Color(0xFF5A4A6A),
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                              Text(
+                                "${s.duration}m",
+                                style: const TextStyle(
+                                  color: Color(0xFF7A6F8F),
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                              const Icon(Icons.drag_handle,
+                                  color: Color(0xFF8A4FFF)),
+                            ],
+                          ),
+                        );
+                      }).toList(),
+                    ),
+
+                  const SizedBox(height: 40),
+
+                  // Save button
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF8A4FFF),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                      ),
+                      onPressed: _saveRoutine,
+                      child: const Text(
+                        "Save Routine",
+                        style: TextStyle(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 16,
+                        ),
+                      ),
                     ),
                   ),
-                  onChanged: (v) {
-                    setState(() {
-                      _emotionalLoad = v!;
-                    });
-                  },
-                ),
-              ],
+                ],
+              ),
             ),
-
-            const SizedBox(height: 16),
-
-            // Fatigue impact
-            Row(
-              children: [
-                const Text(
-                  'Fatigue Impact',
-                  style: TextStyle(
-                    color: Color(0xFF5A4A6A),
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const Spacer(),
-                DropdownButton<int>(
-                  value: _fatigueImpact,
-                  items: List.generate(
-                    10,
-                    (i) => DropdownMenuItem(
-                      value: i + 1,
-                      child: Text('${i + 1}'),
-                    ),
-                  ),
-                  onChanged: (v) {
-                    setState(() {
-                      _fatigueImpact = v!;
-                    });
-                  },
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-      actions: [
-        TextButton(
-          child: const Text(
-            'Cancel',
-            style: TextStyle(color: Color(0xFF7A6F8F)),
-          ),
-          onPressed: () => Navigator.pop(context),
-        ),
-        ElevatedButton(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFF8A4FFF),
-          ),
-          child: const Text(
-            'Save',
-            style: TextStyle(color: Colors.white),
-          ),
-          onPressed: () {
-            final title = _titleController.text.trim();
-            final duration = int.tryParse(_durationController.text.trim()) ?? 5;
-
-            if (title.isEmpty) return;
-
-            final step = _routineService.createStep(
-              title: title,
-              order: widget.stepNumber,
-              durationMinutes: duration,
-              emotionalLoad: _emotionalLoad,
-              fatigueImpact: _fatigueImpact,
-            );
-
-            Navigator.pop(context, step);
-          },
-        ),
-      ],
     );
   }
 }
