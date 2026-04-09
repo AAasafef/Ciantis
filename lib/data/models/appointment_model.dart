@@ -1,5 +1,6 @@
 class AppointmentModel {
   final String id;
+
   final String title;
   final String? description;
   final String? location;
@@ -12,9 +13,11 @@ class AppointmentModel {
   final int emotionalLoad; // 1–10
   final int fatigueImpact; // 1–10
 
-  final bool reminderEnabled;
+  final bool isCompleted;
 
-  final bool completed;
+  final bool reminderEnabled;
+  final int? reminderMinutesBefore; // e.g., 10, 30, 60
+
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -28,8 +31,9 @@ class AppointmentModel {
     required this.endTime,
     required this.emotionalLoad,
     required this.fatigueImpact,
+    required this.isCompleted,
     required this.reminderEnabled,
-    required this.completed,
+    this.reminderMinutesBefore,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -43,8 +47,9 @@ class AppointmentModel {
     DateTime? endTime,
     int? emotionalLoad,
     int? fatigueImpact,
+    bool? isCompleted,
     bool? reminderEnabled,
-    bool? completed,
+    int? reminderMinutesBefore,
     DateTime? updatedAt,
   }) {
     return AppointmentModel(
@@ -57,8 +62,10 @@ class AppointmentModel {
       endTime: endTime ?? this.endTime,
       emotionalLoad: emotionalLoad ?? this.emotionalLoad,
       fatigueImpact: fatigueImpact ?? this.fatigueImpact,
+      isCompleted: isCompleted ?? this.isCompleted,
       reminderEnabled: reminderEnabled ?? this.reminderEnabled,
-      completed: completed ?? this.completed,
+      reminderMinutesBefore:
+          reminderMinutesBefore ?? this.reminderMinutesBefore,
       createdAt: createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -75,8 +82,9 @@ class AppointmentModel {
       endTime: DateTime.parse(map['endTime']),
       emotionalLoad: map['emotionalLoad'],
       fatigueImpact: map['fatigueImpact'],
+      isCompleted: map['isCompleted'] == 1,
       reminderEnabled: map['reminderEnabled'] == 1,
-      completed: map['completed'] == 1,
+      reminderMinutesBefore: map['reminderMinutesBefore'],
       createdAt: DateTime.parse(map['createdAt']),
       updatedAt: DateTime.parse(map['updatedAt']),
     );
@@ -93,8 +101,9 @@ class AppointmentModel {
       'endTime': endTime.toIso8601String(),
       'emotionalLoad': emotionalLoad,
       'fatigueImpact': fatigueImpact,
+      'isCompleted': isCompleted ? 1 : 0,
       'reminderEnabled': reminderEnabled ? 1 : 0,
-      'completed': completed ? 1 : 0,
+      'reminderMinutesBefore': reminderMinutesBefore,
       'createdAt': createdAt.toIso8601String(),
       'updatedAt': updatedAt.toIso8601String(),
     };
