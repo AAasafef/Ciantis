@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../data/services/appointment_service.dart';
 import '../../data/models/appointment_model.dart';
-import 'appointment_create_screen.dart';
 import 'appointment_details_screen.dart';
+import 'appointment_create_screen.dart';
 
 class AppointmentListScreen extends StatefulWidget {
   const AppointmentListScreen({super.key});
@@ -14,93 +14,86 @@ class AppointmentListScreen extends StatefulWidget {
 class _AppointmentListScreenState extends State<AppointmentListScreen> {
   final AppointmentService _appointmentService = AppointmentService();
 
-  List<AppointmentModel> _appointments = [];
   bool _loading = true;
+  List<AppointmentModel> _today = [];
+  List<AppointmentModel> _upcoming = [];
 
   @override
   void initState() {
     super.initState();
-    _loadAppointments();
+    _load();
   }
 
-  Future<void> _loadAppointments() async {
-    final appts = await _appointmentService.getAllAppointments();
+  Future<void> _load() async {
+    final today = await _appointmentService.getAppointmentsByDate(DateTime.now());
+    final upcoming = await _appointmentService.getUpcomingAppointments();
+
     setState(() {
-      _appointments = appts;
+      _today = today;
+      _upcoming = upcoming.where((a) => !_isToday(a.startTime)).toList();
       _loading = false;
     });
   }
 
-  Future<void> _toggleComplete(AppointmentModel appt) async {
-    if (!appt.completed) {
-      await _appointmentService.completeAppointment(appt.id);
-    }
-    _loadAppointments();
+  bool _isToday(DateTime dt) {
+    final now = DateTime.now();
+    return dt.year == now.year && dt.month == now.month && dt.day == now.day;
   }
 
-  String _formatTime(DateTime dt) {
-    final h = dt.hour % 12 == 0 ? 12 : dt.hour % 12;
-    final m = dt.minute.toString().padLeft(2, '0');
-    final ampm = dt.hour >= 12 ? "PM" : "AM";
-    return "$h:$m $ampm";
+  Future<void> _toggle(AppointmentModel appt) async {
+    await _appointmentService.toggleCompletion(appt);
+    _load();
   }
 
-  Widget _badge(String label, String value, Color color) {
+  Widget _badge(String label, Color color) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.12),
+        color: color.withOpacity(0.15),
         borderRadius: BorderRadius.circular(10),
       ),
-      child: Row(
-        children: [
-          Text(
-            "$label: ",
-            style: TextStyle(
-              color: color,
-              fontWeight: FontWeight.w600,
-              fontSize: 12,
-            ),
-          ),
-          Text(
-            value,
-            style: TextStyle(
-              color: color,
-              fontWeight: FontWeight.w700,
-              fontSize: 12,
-            ),
-          ),
-        ],
+      child: Text(
+        label,
+        style: TextStyle(
+          color: color,
+          fontWeight: FontWeight.w600,
+          fontSize: 12,
+        ),
       ),
     );
   }
 
-  Widget _appointmentTile(AppointmentModel appt) {
+  Widget _appointmentTile(AppointmentModel a) {
+    final emotionalColor = a.emotionalLoad >= 7
+        ? const Color(0xFFE573B5)
+        : const Color(0xFF8A4FFF);
+
+    final fatigueColor = a.fatigueImpact >= 7
+        ? const Color(0xFFFFC94A)
+        : const Color(0xFF5A4A6A);
+
     return GestureDetector(
       onTap: () async {
         await Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (_) => AppointmentDetailsScreen(appointmentId: appt.id),
+            builder: (_) => AppointmentDetailsScreen(appointmentId: a.id),
           ),
         );
-        _loadAppointments();
+        _load();
       },
       child: Container(
-        margin: const EdgeInsets.only(bottom: 14),
+        margin: const EdgeInsets.only(bottom: 16),
         padding: const EdgeInsets.all(18),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: const Color(0xFFE8E2F0),
-            width: 1,
-          ),
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: const Color(0xFFE8E2F0)),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.04),
-              blurRadius: 8,
-              offset: const Offset(0, 3),
+              blurRadius: 6,
+              offset: const Offset(0, 2),
             ),
           ],
         ),
@@ -108,73 +101,101 @@ class _AppointmentListScreenState extends State<AppointmentListScreen> {
           children: [
             // Completion toggle
             GestureDetector(
-              onTap: () => _toggleComplete(appt),
-              child: Container(
-                width: 26,
-                height: 26,
-                decoration: BoxDecoration(
-                  color: appt.completed
-                      ? const Color(0xFF8A4FFF)
-                      : Colors.transparent,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(
-                    color: const Color(0xFF8A4FFF),
-                    width: 2,
-                  ),
-                ),
-                child: appt.completed
-                    ? const Icon(Icons.check, color: Colors.white, size: 18)
-                    : null,
+              onTap: () => _toggle(a),
+              child: Icon(
+                a.isCompleted
+                    ? Icons.check_circle
+                    : Icons.radio_button_unchecked,
+                color: a.isCompleted
+                    ? const Color(0xFF8A4FFF)
+                    : const Color(0xFFB6AFC8),
+                size: 28,
               ),
             ),
 
             const SizedBox(width: 16),
 
-            // Title + time
+            // Main content
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    appt.title,
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      color: appt.completed
-                          ? const Color(0xFF7A6F8F)
-                          : const Color(0xFF5A4A6A),
-                      decoration:
-                          appt.completed ? TextDecoration.lineThrough : null,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    "${_formatTime(appt.startTime)} - ${_formatTime(appt.endTime)}",
+                    a.title,
                     style: const TextStyle(
-                      fontSize: 13,
-                      color: Color(0xFF7A6F8F),
+                      color: Color(0xFF5A4A6A),
+                      fontWeight: FontWeight.w700,
+                      fontSize: 16,
                     ),
                   ),
+                  const SizedBox(height: 6),
+                  Text(
+                    "${a.startTime.hour.toString().padLeft(2, '0')}:${a.startTime.minute.toString().padLeft(2, '0')}  →  ${a.endTime.hour.toString().padLeft(2, '0')}:${a.endTime.minute.toString().padLeft(2, '0')}",
+                    style: const TextStyle(
+                      color: Color(0xFF7A6F8F),
+                      fontSize: 13,
+                    ),
+                  ),
+                  if (a.location != null && a.location!.trim().isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 4),
+                      child: Text(
+                        a.location!,
+                        style: const TextStyle(
+                          color: Color(0xFF9A8FB0),
+                          fontSize: 13,
+                        ),
+                      ),
+                    ),
                 ],
               ),
             ),
 
-            const SizedBox(width: 12),
-
-            // Emotional + fatigue badges
+            // Badges
             Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                _badge("E", appt.emotionalLoad.toString(),
-                    const Color(0xFF8A4FFF)),
+                _badge("E ${a.emotionalLoad}", emotionalColor),
                 const SizedBox(height: 6),
-                _badge("F", appt.fatigueImpact.toString(),
-                    const Color(0xFF5A4A6A)),
+                _badge("F ${a.fatigueImpact}", fatigueColor),
               ],
             ),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _section(String title, List<AppointmentModel> list) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: const TextStyle(
+            color: Color(0xFF5A4A6A),
+            fontWeight: FontWeight.w700,
+            fontSize: 18,
+          ),
+        ),
+        const SizedBox(height: 16),
+        if (list.isEmpty)
+          const Padding(
+            padding: EdgeInsets.only(bottom: 20),
+            child: Text(
+              "No appointments",
+              style: TextStyle(
+                color: Color(0xFF7A6F8F),
+                fontSize: 15,
+              ),
+            ),
+          )
+        else
+          Column(
+            children: list.map(_appointmentTile).toList(),
+          ),
+        const SizedBox(height: 30),
+      ],
     );
   }
 
@@ -187,30 +208,13 @@ class _AppointmentListScreenState extends State<AppointmentListScreen> {
         elevation: 0,
         centerTitle: true,
         title: const Text(
-          'Appointments',
+          "Appointments",
           style: TextStyle(
             color: Color(0xFF8A4FFF),
             fontWeight: FontWeight.w600,
           ),
         ),
       ),
-      body: _loading
-          ? const Center(child: CircularProgressIndicator())
-          : _appointments.isEmpty
-              ? const Center(
-                  child: Text(
-                    'No appointments yet',
-                    style: TextStyle(
-                      color: Color(0xFF7A6F8F),
-                      fontSize: 16,
-                    ),
-                  ),
-                )
-              : ListView(
-                  padding: const EdgeInsets.all(20),
-                  children: _appointments.map(_appointmentTile).toList(),
-                ),
-
       floatingActionButton: FloatingActionButton(
         backgroundColor: const Color(0xFF8A4FFF),
         onPressed: () async {
@@ -220,10 +224,21 @@ class _AppointmentListScreenState extends State<AppointmentListScreen> {
               builder: (_) => const AppointmentCreateScreen(),
             ),
           );
-          _loadAppointments();
+          _load();
         },
         child: const Icon(Icons.add, color: Colors.white),
       ),
+      body: _loading
+          ? const Center(child: CircularProgressIndicator())
+          : SingleChildScrollView(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                children: [
+                  _section("Today", _today),
+                  _section("Upcoming", _upcoming),
+                ],
+              ),
+            ),
     );
   }
 }
