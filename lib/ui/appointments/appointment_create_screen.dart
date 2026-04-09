@@ -12,96 +12,114 @@ class AppointmentCreateScreen extends StatefulWidget {
 class _AppointmentCreateScreenState extends State<AppointmentCreateScreen> {
   final AppointmentService _appointmentService = AppointmentService();
 
-  final TextEditingController _titleController = TextEditingController();
-  final TextEditingController _descriptionController = TextEditingController();
-  final TextEditingController _locationController = TextEditingController();
+  final TextEditingController _titleCtrl = TextEditingController();
+  final TextEditingController _descCtrl = TextEditingController();
+  final TextEditingController _locationCtrl = TextEditingController();
 
-  String _selectedCategory = 'personal';
+  String _category = "personal";
+
+  DateTime _selectedDate = DateTime.now();
+  TimeOfDay _startTime = TimeOfDay.now();
+  TimeOfDay _endTime = TimeOfDay.now().replacing(minute: TimeOfDay.now().minute + 30);
+
   int _emotionalLoad = 5;
   int _fatigueImpact = 5;
+
   bool _reminderEnabled = false;
+  int _reminderMinutesBefore = 10;
 
-  DateTime? _startTime;
-  DateTime? _endTime;
+  bool _saving = false;
 
-  final List<String> _categories = [
-    'school',
-    'kids',
-    'salon',
-    'health',
-    'personal',
-  ];
-
-  // -----------------------------
-  // PICK DATE + TIME
-  // -----------------------------
-  Future<DateTime?> _pickDateTime(DateTime? initial) async {
-    final now = DateTime.now();
-    final date = await showDatePicker(
+  Future<void> _pickDate() async {
+    final picked = await showDatePicker(
       context: context,
-      initialDate: initial ?? now,
-      firstDate: now.subtract(const Duration(days: 365)),
-      lastDate: now.add(const Duration(days: 365 * 5)),
+      initialDate: _selectedDate,
+      firstDate: DateTime(2020),
+      lastDate: DateTime(2035),
     );
-
-    if (date == null) return null;
-
-    final time = await showTimePicker(
-      context: context,
-      initialTime: initial != null
-          ? TimeOfDay(hour: initial.hour, minute: initial.minute)
-          : TimeOfDay.now(),
-    );
-
-    if (time == null) return null;
-
-    return DateTime(date.year, date.month, date.day, time.hour, time.minute);
+    if (picked != null) setState(() => _selectedDate = picked);
   }
 
-  // -----------------------------
-  // SAVE APPOINTMENT
-  // -----------------------------
-  Future<void> _saveAppointment() async {
-    final title = _titleController.text.trim();
-    if (title.isEmpty || _startTime == null || _endTime == null) return;
+  Future<void> _pickStartTime() async {
+    final picked = await showTimePicker(
+      context: context,
+      initialTime: _startTime,
+    );
+    if (picked != null) setState(() => _startTime = picked);
+  }
+
+  Future<void> _pickEndTime() async {
+    final picked = await showTimePicker(
+      context: context,
+      initialTime: _endTime,
+    );
+    if (picked != null) setState(() => _endTime = picked);
+  }
+
+  Future<void> _save() async {
+    if (_saving) return;
+
+    final title = _titleCtrl.text.trim();
+    if (title.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Title is required")),
+      );
+      return;
+    }
+
+    setState(() => _saving = true);
+
+    final start = DateTime(
+      _selectedDate.year,
+      _selectedDate.month,
+      _selectedDate.day,
+      _startTime.hour,
+      _startTime.minute,
+    );
+
+    final end = DateTime(
+      _selectedDate.year,
+      _selectedDate.month,
+      _selectedDate.day,
+      _endTime.hour,
+      _endTime.minute,
+    );
 
     await _appointmentService.createAppointment(
       title: title,
-      description: _descriptionController.text.trim(),
-      location: _locationController.text.trim(),
-      category: _selectedCategory,
-      startTime: _startTime!,
-      endTime: _endTime!,
+      description: _descCtrl.text.trim(),
+      location: _locationCtrl.text.trim(),
+      category: _category,
+      startTime: start,
+      endTime: end,
       emotionalLoad: _emotionalLoad,
       fatigueImpact: _fatigueImpact,
       reminderEnabled: _reminderEnabled,
+      reminderMinutesBefore: _reminderEnabled ? _reminderMinutesBefore : null,
     );
 
     if (mounted) Navigator.pop(context);
   }
 
-  Widget _categoryChip(String category) {
-    final selected = category == _selectedCategory;
+  Widget _categoryChip(String value, String label) {
+    final selected = _category == value;
 
     return GestureDetector(
-      onTap: () {
-        setState(() {
-          _selectedCategory = category;
-        });
-      },
+      onTap: () => setState(() => _category = value),
       child: Container(
+        margin: const EdgeInsets.only(right: 10),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-        margin: const EdgeInsets.only(right: 10, bottom: 10),
         decoration: BoxDecoration(
-          color: selected
-              ? const Color(0xFF8A4FFF)
-              : const Color(0xFFE8E2F0),
-          borderRadius: BorderRadius.circular(12),
+          color: selected ? const Color(0xFF8A4FFF) : Colors.white,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: const Color(0xFF8A4FFF),
+          ),
         ),
         child: Text(
-          category[0].toUpperCase() + category.substring(1),
+          label,
           style: TextStyle(
-            color: selected ? Colors.white : const Color(0xFF5A4A6A),
+            color: selected ? Colors.white : const Color(0xFF8A4FFF),
             fontWeight: FontWeight.w600,
           ),
         ),
@@ -109,62 +127,14 @@ class _AppointmentCreateScreenState extends State<AppointmentCreateScreen> {
     );
   }
 
-  Widget _loadSelector({
-    required String label,
-    required int value,
-    required Function(int) onChanged,
-  }) {
-    return Row(
-      children: [
-        Text(
-          label,
-          style: const TextStyle(
-            color: Color(0xFF5A4A6A),
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        const Spacer(),
-        DropdownButton<int>(
-          value: value,
-          items: List.generate(
-            10,
-            (i) => DropdownMenuItem(
-              value: i + 1,
-              child: Text('${i + 1}'),
-            ),
-          ),
-          onChanged: (v) => onChanged(v!),
-        ),
-      ],
-    );
-  }
-
-  Widget _dateTimePicker({
-    required String label,
-    required DateTime? value,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(
-            color: const Color(0xFFE8E2F0),
-            width: 1,
-          ),
-        ),
-        child: Text(
-          value == null
-              ? label
-              : "${value.month}/${value.day}/${value.year}  ${value.hour.toString().padLeft(2, '0')}:${value.minute.toString().padLeft(2, '0')}",
-          style: const TextStyle(
-            color: Color(0xFF5A4A6A),
-            fontWeight: FontWeight.w600,
-          ),
-        ),
+  InputDecoration _input(String label) {
+    return InputDecoration(
+      labelText: label,
+      filled: true,
+      fillColor: Colors.white,
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: const BorderSide(color: Color(0xFFE8E2F0)),
       ),
     );
   }
@@ -178,7 +148,7 @@ class _AppointmentCreateScreenState extends State<AppointmentCreateScreen> {
         elevation: 0,
         centerTitle: true,
         title: const Text(
-          'New Appointment',
+          "New Appointment",
           style: TextStyle(
             color: Color(0xFF8A4FFF),
             fontWeight: FontWeight.w600,
@@ -188,208 +158,211 @@ class _AppointmentCreateScreenState extends State<AppointmentCreateScreen> {
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Title
-            const Text(
-              'Title',
-              style: TextStyle(
-                color: Color(0xFF5A4A6A),
-                fontWeight: FontWeight.w600,
-                fontSize: 15,
-              ),
-            ),
-            const SizedBox(height: 8),
             TextField(
-              controller: _titleController,
-              decoration: InputDecoration(
-                hintText: 'Enter appointment name',
-                filled: true,
-                fillColor: Colors.white,
-                contentPadding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(14),
-                  borderSide: BorderSide.none,
-                ),
-              ),
+              controller: _titleCtrl,
+              decoration: _input("Title"),
             ),
-
             const SizedBox(height: 20),
 
-            // Description
-            const Text(
-              'Description',
-              style: TextStyle(
-                color: Color(0xFF5A4A6A),
-                fontWeight: FontWeight.w600,
-                fontSize: 15,
-              ),
-            ),
-            const SizedBox(height: 8),
             TextField(
-              controller: _descriptionController,
+              controller: _descCtrl,
               maxLines: 3,
-              decoration: InputDecoration(
-                hintText: 'Optional',
-                filled: true,
-                fillColor: Colors.white,
-                contentPadding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(14),
-                  borderSide: BorderSide.none,
-                ),
-              ),
+              decoration: _input("Description (optional)"),
             ),
-
             const SizedBox(height: 20),
 
-            // Location
-            const Text(
-              'Location',
-              style: TextStyle(
-                color: Color(0xFF5A4A6A),
-                fontWeight: FontWeight.w600,
-                fontSize: 15,
-              ),
-            ),
-            const SizedBox(height: 8),
             TextField(
-              controller: _locationController,
-              decoration: InputDecoration(
-                hintText: 'Optional',
-                filled: true,
-                fillColor: Colors.white,
-                contentPadding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(14),
-                  borderSide: BorderSide.none,
-                ),
+              controller: _locationCtrl,
+              decoration: _input("Location (optional)"),
+            ),
+            const SizedBox(height: 20),
+
+            // Category chips
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Wrap(
+                children: [
+                  _categoryChip("school", "School"),
+                  _categoryChip("kids", "Kids"),
+                  _categoryChip("salon", "Salon"),
+                  _categoryChip("health", "Health"),
+                  _categoryChip("personal", "Personal"),
+                ],
               ),
             ),
 
-            const SizedBox(height: 20),
+            const SizedBox(height: 30),
 
-            // Category
-            const Text(
-              'Category',
-              style: TextStyle(
-                color: Color(0xFF5A4A6A),
-                fontWeight: FontWeight.w600,
-                fontSize: 15,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Wrap(
-              children: _categories.map(_categoryChip).toList(),
-            ),
-
-            const SizedBox(height: 20),
-
-            // Start time
-            const Text(
-              'Start Time',
-              style: TextStyle(
-                color: Color(0xFF5A4A6A),
-                fontWeight: FontWeight.w600,
-                fontSize: 15,
-              ),
-            ),
-            const SizedBox(height: 8),
-            _dateTimePicker(
-              label: "Select start time",
-              value: _startTime,
-              onTap: () async {
-                final dt = await _pickDateTime(_startTime);
-                if (dt != null) setState(() => _startTime = dt);
-              },
-            ),
-
-            const SizedBox(height: 20),
-
-            // End time
-            const Text(
-              'End Time',
-              style: TextStyle(
-                color: Color(0xFF5A4A6A),
-                fontWeight: FontWeight.w600,
-                fontSize: 15,
-              ),
-            ),
-            const SizedBox(height: 8),
-            _dateTimePicker(
-              label: "Select end time",
-              value: _endTime,
-              onTap: () async {
-                final dt = await _pickDateTime(_endTime);
-                if (dt != null) setState(() => _endTime = dt);
-              },
-            ),
-
-            const SizedBox(height: 20),
-
-            // Emotional load
-            _loadSelector(
-              label: "Emotional Load",
-              value: _emotionalLoad,
-              onChanged: (v) => setState(() => _emotionalLoad = v),
-            ),
-
-            const SizedBox(height: 16),
-
-            // Fatigue impact
-            _loadSelector(
-              label: "Fatigue Impact",
-              value: _fatigueImpact,
-              onChanged: (v) => setState(() => _fatigueImpact = v),
-            ),
-
-            const SizedBox(height: 20),
-
-            // Reminder toggle
+            // Date + time pickers
             Row(
               children: [
-                const Text(
-                  "Reminder",
-                  style: TextStyle(
-                    color: Color(0xFF5A4A6A),
-                    fontWeight: FontWeight.w600,
+                Expanded(
+                  child: GestureDetector(
+                    onTap: _pickDate,
+                    child: Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(color: const Color(0xFFE8E2F0)),
+                      ),
+                      child: Text(
+                        "${_selectedDate.month}/${_selectedDate.day}/${_selectedDate.year}",
+                        style: const TextStyle(
+                          color: Color(0xFF5A4A6A),
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
                   ),
-                ),
-                const Spacer(),
-                Switch(
-                  value: _reminderEnabled,
-                  activeColor: const Color(0xFF8A4FFF),
-                  onChanged: (v) {
-                    setState(() {
-                      _reminderEnabled = v;
-                    });
-                  },
                 ),
               ],
             ),
 
+            const SizedBox(height: 20),
+
+            Row(
+              children: [
+                Expanded(
+                  child: GestureDetector(
+                    onTap: _pickStartTime,
+                    child: Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(color: const Color(0xFFE8E2F0)),
+                      ),
+                      child: Text(
+                        _startTime.format(context),
+                        style: const TextStyle(
+                          color: Color(0xFF5A4A6A),
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: GestureDetector(
+                    onTap: _pickEndTime,
+                    child: Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(14),
+                        border: BorderSide(color: const Color(0xFFE8E2F0)),
+                      ),
+                      child: Text(
+                        _endTime.format(context),
+                        style: const TextStyle(
+                          color: Color(0xFF5A4A6A),
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 30),
+
+            // Emotional load slider
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  "Emotional Load",
+                  style: TextStyle(
+                    color: Color(0xFF5A4A6A),
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                Slider(
+                  value: _emotionalLoad.toDouble(),
+                  min: 1,
+                  max: 10,
+                  divisions: 9,
+                  activeColor: const Color(0xFF8A4FFF),
+                  onChanged: (v) => setState(() => _emotionalLoad = v.toInt()),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 20),
+
+            // Fatigue impact slider
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  "Fatigue Impact",
+                  style: TextStyle(
+                    color: Color(0xFF5A4A6A),
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                Slider(
+                  value: _fatigueImpact.toDouble(),
+                  min: 1,
+                  max: 10,
+                  divisions: 9,
+                  activeColor: const Color(0xFF8A4FFF),
+                  onChanged: (v) => setState(() => _fatigueImpact = v.toInt()),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 30),
+
+            // Reminder toggle
+            SwitchListTile(
+              value: _reminderEnabled,
+              activeColor: const Color(0xFF8A4FFF),
+              title: const Text(
+                "Enable Reminder",
+                style: TextStyle(
+                  color: Color(0xFF5A4A6A),
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              onChanged: (v) => setState(() => _reminderEnabled = v),
+            ),
+
+            if (_reminderEnabled)
+              DropdownButtonFormField<int>(
+                value: _reminderMinutesBefore,
+                decoration: _input("Remind me before"),
+                items: const [
+                  DropdownMenuItem(value: 5, child: Text("5 minutes")),
+                  DropdownMenuItem(value: 10, child: Text("10 minutes")),
+                  DropdownMenuItem(value: 30, child: Text("30 minutes")),
+                  DropdownMenuItem(value: 60, child: Text("1 hour")),
+                ],
+                onChanged: (v) =>
+                    setState(() => _reminderMinutesBefore = v ?? 10),
+              ),
+
             const SizedBox(height: 40),
 
-            // Save Button
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: _saveAppointment,
+                onPressed: _save,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF8A4FFF),
-                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  padding: const EdgeInsets.symmetric(vertical: 14),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(14),
                   ),
                 ),
-                child: const Text(
-                  'Save Appointment',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w600,
+                child: Text(
+                  _saving ? "Saving..." : "Save Appointment",
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w700,
                     fontSize: 16,
                   ),
                 ),
