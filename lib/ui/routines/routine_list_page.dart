@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../../data/services/routine_service.dart';
 import '../../data/models/routine_model.dart';
 import 'widgets/routine_tile.dart';
+import 'routine_creation_page.dart';
+import 'routine_detail_page.dart';
 
 class RoutineListPage extends StatefulWidget {
   final RoutineService routineService;
@@ -30,6 +32,31 @@ class _RoutineListPageState extends State<RoutineListPage> {
     });
   }
 
+  Future<void> _openCreation() async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => RoutineCreationPage(
+          routineService: widget.routineService,
+        ),
+      ),
+    );
+    _load();
+  }
+
+  Future<void> _openDetail(RoutineModel routine) async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => RoutineDetailPage(
+          routine: routine,
+          routineService: widget.routineService,
+        ),
+      ),
+    );
+    _load();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -45,6 +72,12 @@ class _RoutineListPageState extends State<RoutineListPage> {
             fontWeight: FontWeight.w600,
           ),
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.add, color: Color(0xFF8A4FFF)),
+            onPressed: _openCreation,
+          ),
+        ],
       ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
@@ -65,9 +98,7 @@ class _RoutineListPageState extends State<RoutineListPage> {
                     final routine = _routines[i];
                     return RoutineTile(
                       routine: routine,
-                      onTap: () {
-                        // Navigation to detail page will be added in integration step
-                      },
+                      onTap: () => _openDetail(routine),
                     );
                   },
                 ),
