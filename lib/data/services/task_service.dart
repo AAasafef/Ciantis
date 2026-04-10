@@ -1,97 +1,94 @@
 import '../models/task_model.dart';
 import '../repositories/task_repository.dart';
+import '../../core/notifications/task_notification_engine.dart';
 
-/// TaskService is the business-logic layer for the Tasks subsystem.
-/// It handles creation, updates, completion, filtering, and future AI hooks.
+/// TaskService is the main orchestrator for all task operations.
+/// This version includes notification hooks for:
+/// - Task created
+/// - Task updated
+/// - Task deleted
+/// - Task completed
 class TaskService {
   final TaskRepository repository;
 
   TaskService(this.repository);
 
   // -----------------------------
-  // CREATE
+  // CREATE TASK
   // -----------------------------
-  Future<void> createTask({
+  Future<TaskModel> createTask({
     required String title,
-    String? description,
-    DateTime? dueDate,
+    required String description,
     required String category,
     required int priority,
     required int emotionalLoad,
     required int fatigueImpact,
+    required DateTime? dueDate,
   }) async {
-    final task = TaskModel(
+    final task = TaskModel.create(
       title: title,
       description: description,
-      dueDate: dueDate,
       category: category,
       priority: priority,
       emotionalLoad: emotionalLoad,
       fatigueImpact: fatigueImpact,
+      dueDate: dueDate,
     );
 
-    await repository.addTask(task);
+    await repository.createTask(task);
+
+    // Notify engine
+    await TaskNotificationEngine.instance.onTaskCreated(task);
+
+    return task;
   }
 
   // -----------------------------
-  // READ
+  // GET ALL TASKS
   // -----------------------------
   Future<List<TaskModel>> getAllTasks() async {
-    return await repository.getAllTasks();
-  }
-
-  Future<TaskModel?> getTaskById(String id) async {
-    return await repository.getTaskById(id);
-  }
-
-  Future<List<TaskModel>> getTasksByCategory(String category) async {
-    return await repository.getTasksByCategory(category);
-  }
-
-  Future<List<TaskModel>> getTasksDueToday() async {
-    return await repository.getTasksDueToday();
+    return repository.getAllTasks();
   }
 
   // -----------------------------
-  // UPDATE
+  // GET TASK BY ID
+  // -----------------------------
+  Future<TaskModel?> getTaskById(String id) async {
+    return repository.getTaskById(id);
+  }
+
+  // -----------------------------
+  // UPDATE TASK
   // -----------------------------
   Future<void> updateTask(TaskModel task) async {
-    final updated = task.copyWith(updatedAt: DateTime.now());
-    await repository.updateTask(updated);
+    await repository.updateTask(task);
+
+    // Notify engine
+    await TaskNotificationEngine.instance.onTaskUpdated(task);
   }
 
   // -----------------------------
-  // COMPLETE
+  // DELETE TASK
+  // -----------------------------
+  Future<void> deleteTask(String id) async {
+    await repository.deleteTask(id);
+
+    // Notify engine
+    await TaskNotificationEngine.instance.onTaskDeleted(id);
+  }
+
+  // -----------------------------
+  // COMPLETE TASK
   // -----------------------------
   Future<void> completeTask(String id) async {
     final task = await repository.getTaskById(id);
     if (task == null) return;
 
-    final updated = task.copyWith(
-      isCompleted: true,
-      updatedAt: DateTime.now(),
-    );
+    final updated = task.copyWith(isCompleted: true);
 
     await repository.updateTask(updated);
-  }
 
-  // -----------------------------
-  // DELETE
-  // -----------------------------
-  Future<void> deleteTask(String id) async {
-    await repository.deleteTask(id);
-  }
-
-  // -----------------------------
-  // FUTURE: AI + MODE ENGINE HOOKS
-  // -----------------------------
-  /// Placeholder for future AI scoring, mode-aware prioritization,
-  /// emotional load balancing, fatigue-aware scheduling, etc.
-  Future<void> applySmartInsights() async {
-    // Will integrate with:
-    // - Mode Engine
-    // - AI Suggestion Engine
-    // - Emotional/Fatigue scoring
-    // - Next Best Action Engine
+    // Cancel reminder since task is done
+    await TaskNotificationEngine.instance.cancelTaskReminder(id);
   }
 }
