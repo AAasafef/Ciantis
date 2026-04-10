@@ -6,6 +6,7 @@ import '../../data/models/task_model.dart';
 import 'task_creation_page.dart';
 import 'task_detail_page.dart';
 import 'widgets/task_tile.dart';
+import 'widgets/task_filter_bar.dart';
 
 class TaskListPage extends StatefulWidget {
   final TaskService taskService;
@@ -21,7 +22,12 @@ class TaskListPage extends StatefulWidget {
 
 class _TaskListPageState extends State<TaskListPage> {
   bool _loading = true;
-  List<TaskModel> _tasks = [];
+  List<TaskModel> _allTasks = [];
+  List<TaskModel> _filteredTasks = [];
+
+  String _searchQuery = "";
+  String _category = "all";
+  int _priority = 0;
 
   @override
   void initState() {
@@ -32,9 +38,36 @@ class _TaskListPageState extends State<TaskListPage> {
   Future<void> _load() async {
     final list = await widget.taskService.getAllTasks();
     setState(() {
-      _tasks = list;
+      _allTasks = list;
+      _filteredTasks = list;
       _loading = false;
     });
+  }
+
+  void _applyFilters() {
+    List<TaskModel> tasks = List.from(_allTasks);
+
+    // Search filter
+    if (_searchQuery.trim().isNotEmpty) {
+      tasks = tasks.where((t) {
+        return t.title.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+            (t.description ?? "")
+                .toLowerCase()
+                .contains(_searchQuery.toLowerCase());
+      }).toList();
+    }
+
+    // Category filter
+    if (_category != "all") {
+      tasks = tasks.where((t) => t.category == _category).toList();
+    }
+
+    // Priority filter
+    if (_priority != 0) {
+      tasks = tasks.where((t) => t.priority == _priority).toList();
+    }
+
+    setState(() => _filteredTasks = tasks);
   }
 
   Future<void> _openCreation() async {
@@ -86,27 +119,54 @@ class _TaskListPageState extends State<TaskListPage> {
       ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
-          : _tasks.isEmpty
-              ? const Center(
-                  child: Text(
-                    "No tasks yet",
-                    style: TextStyle(
-                      color: Color(0xFF7A6F8F),
-                      fontSize: 16,
-                    ),
-                  ),
-                )
-              : ListView.builder(
-                  padding: const EdgeInsets.all(20),
-                  itemCount: _tasks.length,
-                  itemBuilder: (context, i) {
-                    final task = _tasks[i];
-                    return TaskTile(
-                      task: task,
-                      onTap: () => _openDetail(task),
-                    );
+          : ListView(
+              padding: const EdgeInsets.all(20),
+              children: [
+                // ---------------------------
+                // FILTER BAR
+                // ---------------------------
+                TaskFilterBar(
+                  onSearch: (query) {
+                    _searchQuery = query;
+                    _applyFilters();
+                  },
+                  onCategoryChange: (cat) {
+                    _category = cat;
+                    _applyFilters();
+                  },
+                  onPriorityChange: (p) {
+                    _priority = p;
+                    _applyFilters();
                   },
                 ),
+
+                const SizedBox(height: 20),
+
+                // ---------------------------
+                // TASK LIST
+                // ---------------------------
+                if (_filteredTasks.isEmpty)
+                  const Center(
+                    child: Padding(
+                      padding: EdgeInsets.only(top: 40),
+                      child: Text(
+                        "No tasks match your filters",
+                        style: TextStyle(
+                          color: Color(0xFF7A6F8F),
+                          fontSize: 16,
+                        ),
+                      ),
+                    ),
+                  )
+                else
+                  ..._filteredTasks.map(
+                    (task) => TaskTile(
+                      task: task,
+                      onTap: () => _openDetail(task),
+                    ),
+                  ),
+              ],
+            ),
     );
   }
 }
