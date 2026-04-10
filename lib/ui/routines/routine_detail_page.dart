@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../data/models/routine_model.dart';
 import '../../data/services/routine_service.dart';
+import 'routine_execution_page.dart';
 
 class RoutineDetailPage extends StatefulWidget {
   final RoutineModel routine;
@@ -52,6 +53,23 @@ class _RoutineDetailPageState extends State<RoutineDetailPage> {
 
   Future<void> _completeRoutine() async {
     await widget.routineService.completeRoutine(_routine.id);
+    final updated = await widget.routineService.getRoutineById(_routine.id);
+    if (updated != null) {
+      setState(() => _routine = updated);
+    }
+  }
+
+  Future<void> _startExecution() async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => RoutineExecutionPage(
+          routine: _routine,
+          routineService: widget.routineService,
+        ),
+      ),
+    );
+
     final updated = await widget.routineService.getRoutineById(_routine.id);
     if (updated != null) {
       setState(() => _routine = updated);
@@ -247,11 +265,30 @@ class _RoutineDetailPageState extends State<RoutineDetailPage> {
 
           const SizedBox(height: 30),
 
+          // Start Execution Button
+          ElevatedButton(
+            onPressed: _startExecution,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF8A4FFF),
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
+              ),
+            ),
+            child: const Text(
+              "Start Routine",
+              style: TextStyle(fontWeight: FontWeight.w700),
+            ),
+          ),
+
+          const SizedBox(height: 14),
+
           // Complete Routine Button
           ElevatedButton(
             onPressed: _completeRoutine,
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF8A4FFF),
+              backgroundColor: const Color(0xFFFF8A3D),
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(vertical: 14),
               shape: RoundedRectangleBorder(
