@@ -4,132 +4,89 @@ class TaskModel {
   final String id;
   final String title;
   final String? description;
-
-  final DateTime createdAt;
   final DateTime? dueDate;
-  final DateTime? completedAt;
-
+  final String category;
+  final int priority; // 1–5
   final bool isCompleted;
 
-  final int emotionalLoad;   // 1–10
-  final int fatigueImpact;   // 1–10
+  final int emotionalLoad; // 1–10
+  final int fatigueImpact; // 1–10
 
-  final String category;     // school, kids, salon, health, personal
-  final String? location;
-
-  final bool hasSubtasks;
-  final List<String> subtaskIds;
-
-  final bool reminderEnabled;
-  final int reminderMinutesBefore;
-
-  final bool isRecurring;
-  final String? recurrenceRule; // e.g. "daily", "weekly", "monthly"
+  final DateTime createdAt;
+  final DateTime updatedAt;
 
   TaskModel({
     String? id,
     required this.title,
     this.description,
-    required this.createdAt,
     this.dueDate,
-    this.completedAt,
+    required this.category,
+    required this.priority,
     this.isCompleted = false,
-    this.emotionalLoad = 3,
-    this.fatigueImpact = 3,
-    this.category = "personal",
-    this.location,
-    this.hasSubtasks = false,
-    this.subtaskIds = const [],
-    this.reminderEnabled = false,
-    this.reminderMinutesBefore = 30,
-    this.isRecurring = false,
-    this.recurrenceRule,
-  }) : id = id ?? const Uuid().v4();
+    required this.emotionalLoad,
+    required this.fatigueImpact,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  })  : id = id ?? const Uuid().v4(),
+        createdAt = createdAt ?? DateTime.now(),
+        updatedAt = updatedAt ?? DateTime.now();
 
   TaskModel copyWith({
     String? title,
     String? description,
-    DateTime? createdAt,
     DateTime? dueDate,
-    DateTime? completedAt,
+    String? category,
+    int? priority,
     bool? isCompleted,
     int? emotionalLoad,
     int? fatigueImpact,
-    String? category,
-    String? location,
-    bool? hasSubtasks,
-    List<String>? subtaskIds,
-    bool? reminderEnabled,
-    int? reminderMinutesBefore,
-    bool? isRecurring,
-    String? recurrenceRule,
+    DateTime? updatedAt,
   }) {
     return TaskModel(
       id: id,
       title: title ?? this.title,
       description: description ?? this.description,
-      createdAt: createdAt ?? this.createdAt,
       dueDate: dueDate ?? this.dueDate,
-      completedAt: completedAt ?? this.completedAt,
+      category: category ?? this.category,
+      priority: priority ?? this.priority,
       isCompleted: isCompleted ?? this.isCompleted,
       emotionalLoad: emotionalLoad ?? this.emotionalLoad,
       fatigueImpact: fatigueImpact ?? this.fatigueImpact,
-      category: category ?? this.category,
-      location: location ?? this.location,
-      hasSubtasks: hasSubtasks ?? this.hasSubtasks,
-      subtaskIds: subtaskIds ?? this.subtaskIds,
-      reminderEnabled: reminderEnabled ?? this.reminderEnabled,
-      reminderMinutesBefore:
-          reminderMinutesBefore ?? this.reminderMinutesBefore,
-      isRecurring: isRecurring ?? this.isRecurring,
-      recurrenceRule: recurrenceRule ?? this.recurrenceRule,
+      createdAt: createdAt,
+      updatedAt: updatedAt ?? DateTime.now(),
     );
   }
 
-  Map<String, dynamic> toMap() {
+  Map<String, dynamic> toJson() {
     return {
       "id": id,
       "title": title,
       "description": description,
-      "createdAt": createdAt.toIso8601String(),
       "dueDate": dueDate?.toIso8601String(),
-      "completedAt": completedAt?.toIso8601String(),
+      "category": category,
+      "priority": priority,
       "isCompleted": isCompleted,
       "emotionalLoad": emotionalLoad,
       "fatigueImpact": fatigueImpact,
-      "category": category,
-      "location": location,
-      "hasSubtasks": hasSubtasks,
-      "subtaskIds": subtaskIds,
-      "reminderEnabled": reminderEnabled,
-      "reminderMinutesBefore": reminderMinutesBefore,
-      "isRecurring": isRecurring,
-      "recurrenceRule": recurrenceRule,
+      "createdAt": createdAt.toIso8601String(),
+      "updatedAt": updatedAt.toIso8601String(),
     };
   }
 
-  factory TaskModel.fromMap(Map<String, dynamic> map) {
+  factory TaskModel.fromJson(Map<String, dynamic> json) {
     return TaskModel(
-      id: map["id"],
-      title: map["title"],
-      description: map["description"],
-      createdAt: DateTime.parse(map["createdAt"]),
+      id: json["id"],
+      title: json["title"],
+      description: json["description"],
       dueDate:
-          map["dueDate"] != null ? DateTime.parse(map["dueDate"]) : null,
-      completedAt: map["completedAt"] != null
-          ? DateTime.parse(map["completedAt"])
-          : null,
-      isCompleted: map["isCompleted"] ?? false,
-      emotionalLoad: map["emotionalLoad"] ?? 3,
-      fatigueImpact: map["fatigueImpact"] ?? 3,
-      category: map["category"] ?? "personal",
-      location: map["location"],
-      hasSubtasks: map["hasSubtasks"] ?? false,
-      subtaskIds: List<String>.from(map["subtaskIds"] ?? []),
-      reminderEnabled: map["reminderEnabled"] ?? false,
-      reminderMinutesBefore: map["reminderMinutesBefore"] ?? 30,
-      isRecurring: map["isRecurring"] ?? false,
-      recurrenceRule: map["recurrenceRule"],
+          json["dueDate"] != null ? DateTime.parse(json["dueDate"]) : null,
+      category: json["category"],
+      priority: json["priority"],
+      isCompleted: json["isCompleted"],
+      emotionalLoad: json["emotionalLoad"],
+      fatigueImpact: json["fatigueImpact"],
+      createdAt: DateTime.parse(json["createdAt"]),
+      updatedAt: DateTime.parse(json["updatedAt"]),
     );
   }
 }
