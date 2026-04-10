@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../data/services/appointment_service.dart';
 import '../../data/models/appointment_model.dart';
+import 'widgets/calendar_event_indicators.dart';
 
 class CalendarDayView extends StatefulWidget {
   final DateTime date;
@@ -32,14 +33,6 @@ class _CalendarDayViewState extends State<CalendarDayView> {
   }
 
   Widget _appointmentTile(AppointmentModel a) {
-    final emotionalColor = a.emotionalLoad >= 7
-        ? const Color(0xFFE573B5)
-        : const Color(0xFF8A4FFF);
-
-    final fatigueColor = a.fatigueImpact >= 7
-        ? const Color(0xFFFFC94A)
-        : const Color(0xFF5A4A6A);
-
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(18),
@@ -72,7 +65,7 @@ class _CalendarDayViewState extends State<CalendarDayView> {
 
           const SizedBox(width: 10),
 
-          // Main content
+          // Title + location
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -100,27 +93,10 @@ class _CalendarDayViewState extends State<CalendarDayView> {
             ),
           ),
 
-          // Emotional + fatigue dots
-          Column(
-            children: [
-              Container(
-                width: 10,
-                height: 10,
-                decoration: BoxDecoration(
-                  color: emotionalColor,
-                  shape: BoxShape.circle,
-                ),
-              ),
-              const SizedBox(height: 6),
-              Container(
-                width: 10,
-                height: 10,
-                decoration: BoxDecoration(
-                  color: fatigueColor,
-                  shape: BoxShape.circle,
-                ),
-              ),
-            ],
+          // Emotional/fatigue indicators (shared widget)
+          CalendarEventIndicators(
+            appointments: [a],
+            maxDots: 2,
           ),
         ],
       ),
