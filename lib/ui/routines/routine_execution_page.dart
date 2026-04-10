@@ -29,18 +29,21 @@ class _RoutineExecutionPageState extends State<RoutineExecutionPage> {
   Future<void> _completeStep() async {
     final step = _routine.steps[_currentStepIndex];
 
+    // Mark step complete
     await widget.routineService.completeStep(_routine.id, step.id);
 
+    // Refresh routine
     final updated = await widget.routineService.getRoutineById(_routine.id);
     if (updated != null) {
       setState(() => _routine = updated);
     }
 
+    // Move to next step or finish routine
     if (_currentStepIndex < _routine.steps.length - 1) {
       setState(() => _currentStepIndex++);
     } else {
       await widget.routineService.completeRoutine(_routine.id);
-      Navigator.pop(context);
+      Navigator.pop(context, true); // return to detail page with refresh signal
     }
   }
 
