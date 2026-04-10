@@ -2,54 +2,78 @@ import '../dao/task_dao.dart';
 import '../models/task_model.dart';
 
 class TaskRepository {
-  final TaskDao _dao = TaskDao();
+  final TaskDao dao;
 
-  // -----------------------------
-  // ADD TASK
-  // -----------------------------
-  Future<void> addTask(TaskModel task) async {
-    await _dao.insertTask(task);
+  TaskRepository(this.dao);
+
+  // Create
+  Future<void> createTask(TaskModel task) async {
+    await dao.insert(task);
   }
 
-  // -----------------------------
-  // UPDATE TASK
-  // -----------------------------
+  // Update
   Future<void> updateTask(TaskModel task) async {
-    await _dao.updateTask(task);
+    await dao.update(task);
   }
 
-  // -----------------------------
-  // DELETE TASK
-  // -----------------------------
+  // Delete
   Future<void> deleteTask(String id) async {
-    await _dao.deleteTask(id);
+    await dao.delete(id);
   }
 
-  // -----------------------------
-  // GET ALL TASKS
-  // -----------------------------
-  Future<List<TaskModel>> getAllTasks() async {
-    return await _dao.getAllTasks();
-  }
-
-  // -----------------------------
-  // GET TASK BY ID
-  // -----------------------------
+  // Get by ID
   Future<TaskModel?> getTaskById(String id) async {
-    return await _dao.getTaskById(id);
+    return await dao.getById(id);
   }
 
-  // -----------------------------
-  // GET TASKS BY CATEGORY
-  // -----------------------------
+  // Get all tasks
+  Future<List<TaskModel>> getAllTasks() async {
+    return await dao.getAll();
+  }
+
+  // Get tasks by date
+  Future<List<TaskModel>> getTasksByDate(DateTime date) async {
+    return await dao.getByDate(date);
+  }
+
+  // Toggle completion
+  Future<void> toggleTaskCompletion(TaskModel task) async {
+    await dao.toggleCompletion(task);
+  }
+
+  // Get tasks by category (school, kids, salon, health, personal)
   Future<List<TaskModel>> getTasksByCategory(String category) async {
-    return await _dao.getTasksByCategory(category);
+    final all = await dao.getAll();
+    return all.where((t) => t.category == category).toList();
   }
 
-  // -----------------------------
-  // GET TASKS BY DUE DATE
-  // -----------------------------
-  Future<List<TaskModel>> getTasksByDueDate(DateTime date) async {
-    return await _dao.getTasksByDueDate(date);
+  // Get tasks with high emotional load
+  Future<List<TaskModel>> getHighEmotionalLoadTasks() async {
+    final all = await dao.getAll();
+    return all.where((t) => t.emotionalLoad >= 7).toList();
+  }
+
+  // Get tasks with high fatigue impact
+  Future<List<TaskModel>> getHighFatigueTasks() async {
+    final all = await dao.getAll();
+    return all.where((t) => t.fatigueImpact >= 7).toList();
+  }
+
+  // Get overdue tasks
+  Future<List<TaskModel>> getOverdueTasks() async {
+    final now = DateTime.now();
+    final all = await dao.getAll();
+
+    return all.where((t) {
+      if (t.dueDate == null) return false;
+      if (t.isCompleted) return false;
+      return t.dueDate!.isBefore(now);
+    }).toList();
+  }
+
+  // Get recurring tasks
+  Future<List<TaskModel>> getRecurringTasks() async {
+    final all = await dao.getAll();
+    return all.where((t) => t.isRecurring).toList();
   }
 }
