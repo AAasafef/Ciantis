@@ -1,12 +1,19 @@
 import 'package:flutter/material.dart';
+
 import '../../data/services/task_service.dart';
 import '../../data/models/task_model.dart';
+
+import 'task_creation_page.dart';
+import 'task_detail_page.dart';
 import 'widgets/task_tile.dart';
 
 class TaskListPage extends StatefulWidget {
   final TaskService taskService;
 
-  const TaskListPage({super.key, required this.taskService});
+  const TaskListPage({
+    super.key,
+    required this.taskService,
+  });
 
   @override
   State<TaskListPage> createState() => _TaskListPageState();
@@ -30,9 +37,29 @@ class _TaskListPageState extends State<TaskListPage> {
     });
   }
 
-  Future<void> _toggle(TaskModel task) async {
-    await widget.taskService.toggleCompletion(task);
-    await _load();
+  Future<void> _openCreation() async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => TaskCreationPage(
+          taskService: widget.taskService,
+        ),
+      ),
+    );
+    _load();
+  }
+
+  Future<void> _openDetail(TaskModel task) async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => TaskDetailPage(
+          task: task,
+          taskService: widget.taskService,
+        ),
+      ),
+    );
+    _load();
   }
 
   @override
@@ -47,9 +74,15 @@ class _TaskListPageState extends State<TaskListPage> {
           "Tasks",
           style: TextStyle(
             color: Color(0xFF8A4FFF),
-            fontWeight: FontWeight.w600,
+            fontWeight: FontWeight.w700,
           ),
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.add, color: Color(0xFF8A4FFF)),
+            onPressed: _openCreation,
+          ),
+        ],
       ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
@@ -70,7 +103,7 @@ class _TaskListPageState extends State<TaskListPage> {
                     final task = _tasks[i];
                     return TaskTile(
                       task: task,
-                      onToggle: () => _toggle(task),
+                      onTap: () => _openDetail(task),
                     );
                   },
                 ),
