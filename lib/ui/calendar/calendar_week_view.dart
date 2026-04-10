@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../data/services/appointment_service.dart';
 import '../../data/models/appointment_model.dart';
+import 'widgets/calendar_event_indicators.dart';
 
 class CalendarWeekView extends StatefulWidget {
   const CalendarWeekView({super.key});
@@ -50,9 +51,9 @@ class _CalendarWeekViewState extends State<CalendarWeekView> {
         _loadAppointments();
       },
       child: Container(
-        width: 48,
+        width: 60,
         padding: const EdgeInsets.symmetric(vertical: 10),
-        margin: const EdgeInsets.only(right: 10),
+        margin: const EdgeInsets.only(right: 12),
         decoration: BoxDecoration(
           color: isSelected ? const Color(0xFF8A4FFF) : Colors.white,
           borderRadius: BorderRadius.circular(14),
@@ -61,6 +62,13 @@ class _CalendarWeekViewState extends State<CalendarWeekView> {
                 ? const Color(0xFF8A4FFF)
                 : const Color(0xFFE8E2F0),
           ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.03),
+              blurRadius: 4,
+              offset: const Offset(0, 2),
+            ),
+          ],
         ),
         child: Column(
           children: [
@@ -86,10 +94,6 @@ class _CalendarWeekViewState extends State<CalendarWeekView> {
   }
 
   Widget _appointmentTile(AppointmentModel a) {
-    final emotionalColor = a.emotionalLoad >= 7
-        ? const Color(0xFFE573B5)
-        : const Color(0xFF8A4FFF);
-
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(18),
@@ -107,15 +111,22 @@ class _CalendarWeekViewState extends State<CalendarWeekView> {
       ),
       child: Row(
         children: [
+          // Time
           Container(
-            width: 10,
-            height: 10,
-            margin: const EdgeInsets.only(right: 14),
-            decoration: BoxDecoration(
-              color: emotionalColor,
-              shape: BoxShape.circle,
+            width: 70,
+            child: Text(
+              "${a.startTime.hour.toString().padLeft(2, '0')}:${a.startTime.minute.toString().padLeft(2, '0')}",
+              style: const TextStyle(
+                color: Color(0xFF5A4A6A),
+                fontWeight: FontWeight.w700,
+                fontSize: 15,
+              ),
             ),
           ),
+
+          const SizedBox(width: 10),
+
+          // Title + location
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -128,16 +139,25 @@ class _CalendarWeekViewState extends State<CalendarWeekView> {
                     fontSize: 16,
                   ),
                 ),
-                const SizedBox(height: 6),
-                Text(
-                  "${a.startTime.hour.toString().padLeft(2, '0')}:${a.startTime.minute.toString().padLeft(2, '0')}  →  ${a.endTime.hour.toString().padLeft(2, '0')}:${a.endTime.minute.toString().padLeft(2, '0')}",
-                  style: const TextStyle(
-                    color: Color(0xFF7A6F8F),
-                    fontSize: 13,
+                if (a.location != null && a.location!.trim().isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: Text(
+                      a.location!,
+                      style: const TextStyle(
+                        color: Color(0xFF7A6F8F),
+                        fontSize: 13,
+                      ),
+                    ),
                   ),
-                ),
               ],
             ),
+          ),
+
+          // Emotional/fatigue indicators (shared widget)
+          CalendarEventIndicators(
+            appointments: [a],
+            maxDots: 2,
           ),
         ],
       ),
