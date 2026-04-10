@@ -1,133 +1,104 @@
 import 'package:sqflite/sqflite.dart';
-import '../database/app_database.dart';
 import '../models/task_model.dart';
 
 class TaskDao {
-  static const String table = 'tasks';
+  final Database db;
 
-  // -----------------------------
-  // CREATE TABLE
-  // -----------------------------
-  Future<void> createTable(Database db) async {
-    await db.execute('''
-      CREATE TABLE IF NOT EXISTS $table (
-        id TEXT PRIMARY KEY,
-        title TEXT NOT NULL,
-        description TEXT,
-        category TEXT NOT NULL,
-        priority INTEGER NOT NULL,
-        emotionalLoad INTEGER NOT NULL,
-        fatigueImpact INTEGER NOT NULL,
-        dueDate TEXT,
-        completed INTEGER NOT NULL,
-        streak INTEGER NOT NULL,
-        lastCompletedDate TEXT,
-        createdAt TEXT NOT NULL,
-        updatedAt TEXT NOT NULL
-      )
-    ''');
-  }
+  TaskDao(this.db);
 
-  // -----------------------------
-  // INSERT TASK
-  // -----------------------------
-  Future<void> insertTask(TaskModel task) async {
-    final db = await AppDatabase.instance.database;
+  static const String tableName = "tasks";
 
+  static const String createTableQuery = """
+    CREATE TABLE IF NOT EXISTS $tableName (
+      id TEXT PRIMARY KEY,
+      title TEXT NOT NULL,
+      description TEXT,
+      createdAt TEXT NOT NULL,
+      dueDate TEXT,
+      completedAt TEXT,
+      isCompleted INTEGER NOT NULL,
+      emotionalLoad INTEGER NOT NULL,
+      fatigueImpact INTEGER NOT NULL,
+      category TEXT NOT NULL,
+      location TEXT,
+      hasSubtasks INTEGER NOT NULL,
+      subtaskIds TEXT,
+      reminderEnabled INTEGER NOT NULL,
+      reminderMinutesBefore INTEGER NOT NULL,
+      isRecurring INTEGER NOT NULL,
+      recurrenceRule TEXT
+    );
+  """;
+
+  Future<void> insert(TaskModel task) async {
     await db.insert(
-      table,
+      tableName,
       task.toMap(),
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
   }
 
-  // -----------------------------
-  // UPDATE TASK
-  // -----------------------------
-  Future<void> updateTask(TaskModel task) async {
-    final db = await AppDatabase.instance.database;
-
+  Future<void> update(TaskModel task) async {
     await db.update(
-      table,
+      tableName,
       task.toMap(),
-      where: 'id = ?',
+      where: "id = ?",
       whereArgs: [task.id],
     );
   }
 
-  // -----------------------------
-  // DELETE TASK
-  // -----------------------------
-  Future<void> deleteTask(String id) async {
-    final db = await AppDatabase.instance.database;
-
+  Future<void> delete(String id) async {
     await db.delete(
-      table,
-      where: 'id = ?',
+      tableName,
+      where: "id = ?",
       whereArgs: [id],
     );
   }
 
-  // -----------------------------
-  // GET ALL TASKS
-  // -----------------------------
-  Future<List<TaskModel>> getAllTasks() async {
-    final db = await AppDatabase.instance.database;
-
-    final maps = await db.query(
-      table,
-      orderBy: 'createdAt DESC',
-    );
-
-    return maps.map((m) => TaskModel.fromMap(m)).toList();
-  }
-
-  // -----------------------------
-  // GET TASK BY ID
-  // -----------------------------
-  Future<TaskModel?> getTaskById(String id) async {
-    final db = await AppDatabase.instance.database;
-
-    final maps = await db.query(
-      table,
-      where: 'id = ?',
+  Future<TaskModel?> getById(String id) async {
+    final result = await db.query(
+      tableName,
+      where: "id = ?",
       whereArgs: [id],
+      limit: 1,
     );
 
-    if (maps.isEmpty) return null;
-
-    return TaskModel.fromMap(maps.first);
+    if (result.isEmpty) return null;
+    return TaskModel.fromMap(result.first);
   }
 
-  // -----------------------------
-  // GET TASKS BY CATEGORY
-  // -----------------------------
-  Future<List<TaskModel>> getTasksByCategory(String category) async {
-    final db = await AppDatabase.instance.database;
-
-    final maps = await db.query(
-      table,
-      where: 'category = ?',
-      whereArgs: [category],
-      orderBy: 'priority DESC',
+  Future<List<TaskModel>> getAll() async {
+    final result = await db.query(
+      tableName,
+      orderBy: "createdAt DESC",
     );
 
-    return maps.map((m) => TaskModel.fromMap(m)).toList();
+    return result.map((m) => TaskModel.fromMap(m)).toList();
   }
 
-  // -----------------------------
-  // GET TASKS BY DUE DATE
-  // -----------------------------
-  Future<List<TaskModel>> getTasksByDueDate(DateTime date) async {
-    final db = await AppDatabase.instance.database;
+  Future<List<TaskModel>> getByDate(DateTime date) async {
+    final start = DateTime(date.year, date.month, date.day);
+    final end = start.add(const Duration(days: 1));
 
-    final maps = await db.query(
-      table,
-      where: 'dueDate = ?',
-      whereArgs: [date.toIso8601String()],
-      orderBy: 'priority DESC',
+    final result = await db.query(
+      tableName,
+      where: "dueDate >= ? AND dueDate < ?",
+      whereArgs: [
+        start.toIso8601String(),
+        end.toIso8601String(),
+      ],
+      orderBy: "dueDate ASC",
     );
 
-    return maps.map((m) => TaskModel.fromMap(m)).toList();
+    return result.map((m) => TaskModel.fromMap(m)).toList();
+  }
+
+  Future<void> toggleCompletion(TaskModel task) async {
+    final updated = task.copyWith(
+      isCompleted: !task.isCompleted,
+      completedAt: !task.isCompleted ? DateTime.now() : null,
+    );
+
+    await update(updated);
   }
 }
