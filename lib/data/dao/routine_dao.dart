@@ -1,179 +1,118 @@
 import 'package:sqflite/sqflite.dart';
-import '../database/app_database.dart';
 import '../models/routine_model.dart';
-import '../models/routine_step_model.dart';
+import 'dart:convert';
 
 class RoutineDao {
-  static const String routinesTable = 'routines';
-  static const String stepsTable = 'routine_steps';
+  final Database db;
 
-  // -----------------------------
-  // CREATE TABLES
-  // -----------------------------
-  Future<void> createTables(Database db) async {
-    await db.execute('''
-      CREATE TABLE IF NOT EXISTS $routinesTable (
-        id TEXT PRIMARY KEY,
-        title TEXT NOT NULL,
-        description TEXT,
-        category TEXT NOT NULL,
-        emotionalLoad INTEGER NOT NULL,
-        fatigueImpact INTEGER NOT NULL,
-        estimatedDuration INTEGER NOT NULL,
-        streak INTEGER NOT NULL,
-        lastCompleted TEXT,
-        createdAt TEXT NOT NULL,
-        updatedAt TEXT NOT NULL
-      )
-    ''');
+  RoutineDao(this.db);
 
-    await db.execute('''
-      CREATE TABLE IF NOT EXISTS $stepsTable (
-        id TEXT PRIMARY KEY,
-        routineId TEXT NOT NULL,
-        title TEXT NOT NULL,
-        duration INTEGER NOT NULL,
-        emotionalLoad INTEGER NOT NULL,
-        fatigueImpact INTEGER NOT NULL,
-        orderIndex INTEGER NOT NULL,
-        completed INTEGER NOT NULL,
-        createdAt TEXT NOT NULL,
-        updatedAt TEXT NOT NULL,
-        FOREIGN KEY (routineId) REFERENCES $routinesTable(id) ON DELETE CASCADE
-      )
-    ''');
-  }
+  static const String tableName = "routines";
 
-  // -----------------------------
-  // INSERT ROUTINE
-  // -----------------------------
-  Future<void> insertRoutine(RoutineModel routine) async {
-    final db = await AppDatabase.instance.database;
+  static const String createTableQuery = """
+    CREATE TABLE IF NOT EXISTS $tableName (
+      id TEXT PRIMARY KEY,
+      title TEXT NOT NULL,
+      description TEXT,
+      category TEXT NOT NULL,
+      isActive INTEGER NOT NULL,
+      emotionalLoad INTEGER NOT NULL,
+      fatigueImpact INTEGER NOT NULL,
+      steps TEXT NOT NULL,
+      streak INTEGER NOT NULL,
+      lastCompletedAt TEXT,
+      createdAt TEXT NOT NULL,
+      updatedAt TEXT NOT NULL
+    );
+  """;
 
+  // Insert
+  Future<void> insert(RoutineModel routine) async {
     await db.insert(
-      routinesTable,
-      routine.toMap(),
+      tableName,
+      routine.toMap()..["steps"] = jsonEncode(routine.steps.map((s) => s.toMap()).toList()),
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
   }
 
-  // -----------------------------
-  // UPDATE ROUTINE
-  // -----------------------------
-  Future<void> updateRoutine(RoutineModel routine) async {
-    final db = await AppDatabase.instance.database;
-
+  // Update
+  Future<void> update(RoutineModel routine) async {
     await db.update(
-      routinesTable,
-      routine.toMap(),
-      where: 'id = ?',
+      tableName,
+      routine.toMap()..["steps"] = jsonEncode(routine.steps.map((s) => s.toMap()).toList()),
+      where: "id = ?",
       whereArgs: [routine.id],
     );
   }
 
-  // -----------------------------
-  // DELETE ROUTINE (CASCADE STEPS)
-  // -----------------------------
-  Future<void> deleteRoutine(String id) async {
-    final db = await AppDatabase.instance.database;
-
+  // Delete
+  Future<void> delete(String id) async {
     await db.delete(
-      routinesTable,
-      where: 'id = ?',
-      whereArgs: [id],
-    );
-
-    await db.delete(
-      stepsTable,
-      where: 'routineId = ?',
+      tableName,
+      where: "id = ?",
       whereArgs: [id],
     );
   }
 
-  // -----------------------------
-  // GET ALL ROUTINES
-  // -----------------------------
-  Future<List<RoutineModel>> getAllRoutines() async {
-    final db = await AppDatabase.instance.database;
-
-    final maps = await db.query(
-      routinesTable,
-      orderBy: 'createdAt DESC',
-    );
-
-    return maps.map((m) => RoutineModel.fromMap(m)).toList();
-  }
-
-  // -----------------------------
-  // GET ROUTINE BY ID
-  // -----------------------------
-  Future<RoutineModel?> getRoutineById(String id) async {
-    final db = await AppDatabase.instance.database;
-
-    final maps = await db.query(
-      routinesTable,
-      where: 'id = ?',
+  // Get by ID
+  Future<RoutineModel?> getById(String id) async {
+    final result = await db.query(
+      tableName,
+      where: "id = ?",
       whereArgs: [id],
+      limit: 1,
     );
 
-    if (maps.isEmpty) return null;
+    if (result.isEmpty) return null;
 
-    return RoutineModel.fromMap(maps.first);
+    final map = result.first;
+    final stepsJson = jsonDecode(map["steps"]);
+    map["steps"] = stepsJson;
+
+    return RoutineModel.fromMap(map);
   }
 
-  // -----------------------------
-  // INSERT STEP
-  // -----------------------------
-  Future<void> insertStep(RoutineStepModel step) async {
-    final db = await AppDatabase.instance.database;
-
-    await db.insert(
-      stepsTable,
-      step.toMap(),
-      conflictAlgorithm: ConflictAlgorithm.replace,
+  // Get all routines
+  Future<List<RoutineModel>> getAll() async {
+    final result = await db.query(
+      tableName,
+      orderBy: "createdAt DESC",
     );
+
+    return result.map((map) {
+      final stepsJson = jsonDecode(map["steps"]);
+      map["steps"] = stepsJson;
+      return RoutineModel.fromMap(map);
+    }).toList();
   }
 
-  // -----------------------------
-  // UPDATE STEP
-  // -----------------------------
-  Future<void> updateStep(RoutineStepModel step) async {
-    final db = await AppDatabase.instance.database;
+  // Get active routines
+  Future<List<RoutineModel>> getActive() async {
+    final result = await db.query(
+      tableName,
+      where: "isActive = ?",
+      whereArgs: [1],
+      orderBy: "createdAt DESC",
+    );
 
+    return result.map((map) {
+      final stepsJson = jsonDecode(map["steps"]);
+      map["steps"] = stepsJson;
+      return RoutineModel.fromMap(map);
+    }).toList();
+  }
+
+  // Update streak
+  Future<void> updateStreak(String id, int streak, DateTime? lastCompletedAt) async {
     await db.update(
-      stepsTable,
-      step.toMap(),
-      where: 'id = ?',
-      whereArgs: [step.id],
-    );
-  }
-
-  // -----------------------------
-  // DELETE STEP
-  // -----------------------------
-  Future<void> deleteStep(String id) async {
-    final db = await AppDatabase.instance.database;
-
-    await db.delete(
-      stepsTable,
-      where: 'id = ?',
+      tableName,
+      {
+        "streak": streak,
+        "lastCompletedAt": lastCompletedAt?.toIso8601String(),
+        "updatedAt": DateTime.now().toIso8601String(),
+      },
+      where: "id = ?",
       whereArgs: [id],
     );
-  }
-
-  // -----------------------------
-  // GET STEPS FOR ROUTINE
-  // -----------------------------
-  Future<List<RoutineStepModel>> getStepsForRoutine(String routineId) async {
-    final db = await AppDatabase.instance.database;
-
-    final maps = await db.query(
-      stepsTable,
-      where: 'routineId = ?',
-      whereArgs: [routineId],
-      orderBy: 'orderIndex ASC',
-    );
-
-    return maps.map((m) => RoutineStepModel.fromMap(m)).toList();
   }
 }
