@@ -1,173 +1,191 @@
 import 'package:flutter/material.dart';
-import '../../data/services/appointment_service.dart';
-import '../../data/models/appointment_model.dart';
-import 'widgets/calendar_event_indicators.dart';
+import '../../data/services/routine_service.dart';
+import '../../data/models/routine_model.dart';
 
-class CalendarWeekView extends StatefulWidget {
-  const CalendarWeekView({super.key});
+class RoutineCreationPage extends StatefulWidget {
+  final RoutineService routineService;
+
+  const RoutineCreationPage({super.key, required this.routineService});
 
   @override
-  State<CalendarWeekView> createState() => _CalendarWeekViewState();
+  State<RoutineCreationPage> createState() => _RoutineCreationPageState();
 }
 
-class _CalendarWeekViewState extends State<CalendarWeekView> {
-  final AppointmentService _appointmentService = AppointmentService();
+class _RoutineCreationPageState extends State<RoutineCreationPage> {
+  final TextEditingController _title = TextEditingController();
+  final TextEditingController _description = TextEditingController();
 
-  DateTime _selectedDay = DateTime.now();
-  List<AppointmentModel> _appointments = [];
-  bool _loading = true;
+  String _category = "morning";
+  List<RoutineStepModel> _steps = [];
 
-  @override
-  void initState() {
-    super.initState();
-    _loadAppointments();
-  }
+  int _emotionalLoad = 3;
+  int _fatigueImpact = 3;
 
-  Future<void> _loadAppointments() async {
-    final list = await _appointmentService.getAppointmentsByDate(_selectedDay);
-    setState(() {
-      _appointments = list;
-      _loading = false;
-    });
-  }
+  // Add Step Modal
+  Future<void> _addStepDialog() async {
+    final TextEditingController stepTitle = TextEditingController();
+    int duration = 1;
+    int emotional = 3;
+    int fatigue = 3;
 
-  List<DateTime> _weekDays(DateTime anchor) {
-    final monday = anchor.subtract(Duration(days: anchor.weekday - 1));
-    return List.generate(7, (i) => monday.add(Duration(days: i)));
-  }
-
-  Widget _dayChip(DateTime day) {
-    final isSelected =
-        day.year == _selectedDay.year &&
-        day.month == _selectedDay.month &&
-        day.day == _selectedDay.day;
-
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          _selectedDay = day;
-          _loading = true;
-        });
-        _loadAppointments();
+    await showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return AlertDialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(18),
+              ),
+              title: const Text(
+                "Add Step",
+                style: TextStyle(
+                  color: Color(0xFF8A4FFF),
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              content: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    TextField(
+                      controller: stepTitle,
+                      decoration: const InputDecoration(
+                        labelText: "Step Title",
+                        labelStyle: TextStyle(color: Color(0xFF7A6F8F)),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        const Text("Duration: "),
+                        Expanded(
+                          child: Slider(
+                            value: duration.toDouble(),
+                            min: 1,
+                            max: 30,
+                            divisions: 29,
+                            label: "$duration min",
+                            activeColor: Color(0xFF8A4FFF),
+                            onChanged: (v) {
+                              setModalState(() {
+                                duration = v.toInt();
+                              });
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    Row(
+                      children: [
+                        const Text("Emotional: "),
+                        Expanded(
+                          child: Slider(
+                            value: emotional.toDouble(),
+                            min: 1,
+                            max: 10,
+                            divisions: 9,
+                            label: "$emotional",
+                            activeColor: Color(0xFFE573B5),
+                            onChanged: (v) {
+                              setModalState(() {
+                                emotional = v.toInt();
+                              });
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    Row(
+                      children: [
+                        const Text("Fatigue: "),
+                        Expanded(
+                          child: Slider(
+                            value: fatigue.toDouble(),
+                            min: 1,
+                            max: 10,
+                            divisions: 9,
+                            label: "$fatigue",
+                            activeColor: Color(0xFFFFC94A),
+                            onChanged: (v) {
+                              setModalState(() {
+                                fatigue = v.toInt();
+                              });
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  child: const Text("Cancel",
+                      style: TextStyle(color: Color(0xFF7A6F8F))),
+                  onPressed: () => Navigator.pop(context),
+                ),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF8A4FFF),
+                    foregroundColor: Colors.white,
+                  ),
+                  child: const Text("Add"),
+                  onPressed: () {
+                    if (stepTitle.text.trim().isNotEmpty) {
+                      setState(() {
+                        _steps.add(
+                          RoutineStepModel(
+                            title: stepTitle.text.trim(),
+                            order: _steps.length,
+                            durationMinutes: duration,
+                            emotionalLoad: emotional,
+                            fatigueImpact: fatigue,
+                          ),
+                        );
+                      });
+                    }
+                    Navigator.pop(context);
+                  },
+                ),
+              ],
+            );
+          },
+        );
       },
-      child: Container(
-        width: 60,
-        padding: const EdgeInsets.symmetric(vertical: 10),
-        margin: const EdgeInsets.only(right: 12),
-        decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFF8A4FFF) : Colors.white,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(
-            color: isSelected
-                ? const Color(0xFF8A4FFF)
-                : const Color(0xFFE8E2F0),
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.03),
-              blurRadius: 4,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Column(
-          children: [
-            Text(
-              ["M", "T", "W", "T", "F", "S", "S"][day.weekday - 1],
-              style: TextStyle(
-                color: isSelected ? Colors.white : const Color(0xFF5A4A6A),
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              "${day.day}",
-              style: TextStyle(
-                color: isSelected ? Colors.white : const Color(0xFF5A4A6A),
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 
-  Widget _appointmentTile(AppointmentModel a) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: const Color(0xFFE8E2F0)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 6,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          // Time
-          Container(
-            width: 70,
-            child: Text(
-              "${a.startTime.hour.toString().padLeft(2, '0')}:${a.startTime.minute.toString().padLeft(2, '0')}",
-              style: const TextStyle(
-                color: Color(0xFF5A4A6A),
-                fontWeight: FontWeight.w700,
-                fontSize: 15,
-              ),
-            ),
-          ),
+  Future<void> _save() async {
+    if (_title.text.trim().isEmpty) return;
 
-          const SizedBox(width: 10),
+    await widget.routineService.createRoutine(
+      title: _title.text.trim(),
+      description: _description.text.trim(),
+      category: _category,
+      steps: _steps,
+    );
 
-          // Title + location
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  a.title,
-                  style: const TextStyle(
-                    color: Color(0xFF5A4A6A),
-                    fontWeight: FontWeight.w700,
-                    fontSize: 16,
-                  ),
-                ),
-                if (a.location != null && a.location!.trim().isNotEmpty)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 4),
-                    child: Text(
-                      a.location!,
-                      style: const TextStyle(
-                        color: Color(0xFF7A6F8F),
-                        fontSize: 13,
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-          ),
+    Navigator.pop(context, true); // return with refresh signal
+  }
 
-          // Emotional/fatigue indicators (shared widget)
-          CalendarEventIndicators(
-            appointments: [a],
-            maxDots: 2,
-          ),
-        ],
+  Widget _sectionTitle(String text) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 20, bottom: 8),
+      child: Text(
+        text,
+        style: const TextStyle(
+          color: Color(0xFF5A4A6A),
+          fontWeight: FontWeight.w700,
+          fontSize: 15,
+        ),
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final week = _weekDays(_selectedDay);
-
     return Scaffold(
       backgroundColor: const Color(0xFFF7F4F9),
       appBar: AppBar(
@@ -175,42 +193,156 @@ class _CalendarWeekViewState extends State<CalendarWeekView> {
         elevation: 0,
         centerTitle: true,
         title: const Text(
-          "Week View",
+          "New Routine",
           style: TextStyle(
             color: Color(0xFF8A4FFF),
             fontWeight: FontWeight.w600,
           ),
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.check, color: Color(0xFF8A4FFF)),
+            onPressed: _save,
+          ),
+        ],
       ),
-      body: Column(
+      body: ListView(
+        padding: const EdgeInsets.all(20),
         children: [
-          // Week strip
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-            height: 110,
-            child: ListView(
-              scrollDirection: Axis.horizontal,
-              children: week.map(_dayChip).toList(),
+          // Title
+          TextField(
+            controller: _title,
+            decoration: const InputDecoration(
+              labelText: "Title",
+              labelStyle: TextStyle(color: Color(0xFF7A6F8F)),
+              focusedBorder: UnderlineInputBorder(
+                borderSide: BorderSide(color: Color(0xFF8A4FFF)),
+              ),
             ),
           ),
 
-          Expanded(
-            child: _loading
-                ? const Center(child: CircularProgressIndicator())
-                : _appointments.isEmpty
-                    ? const Center(
+          // Description
+          TextField(
+            controller: _description,
+            maxLines: 3,
+            decoration: const InputDecoration(
+              labelText: "Description",
+              labelStyle: TextStyle(color: Color(0xFF7A6F8F)),
+              focusedBorder: UnderlineInputBorder(
+                borderSide: BorderSide(color: Color(0xFF8A4FFF)),
+              ),
+            ),
+          ),
+
+          // Category
+          _sectionTitle("Category"),
+          DropdownButtonFormField<String>(
+            value: _category,
+            items: const [
+              DropdownMenuItem(value: "morning", child: Text("Morning")),
+              DropdownMenuItem(value: "night", child: Text("Night")),
+              DropdownMenuItem(value: "kids", child: Text("Kids")),
+              DropdownMenuItem(value: "salon", child: Text("Salon")),
+              DropdownMenuItem(value: "health", child: Text("Health")),
+              DropdownMenuItem(value: "study", child: Text("Study")),
+              DropdownMenuItem(value: "custom", child: Text("Custom")),
+            ],
+            onChanged: (v) => setState(() => _category = v!),
+            decoration: const InputDecoration(
+              border: OutlineInputBorder(),
+            ),
+          ),
+
+          // Steps
+          _sectionTitle("Steps"),
+          if (_steps.isEmpty)
+            const Text(
+              "No steps yet",
+              style: TextStyle(
+                color: Color(0xFF7A6F8F),
+                fontSize: 14,
+              ),
+            ),
+          if (_steps.isNotEmpty)
+            Column(
+              children: _steps.map((s) {
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 10),
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: Color(0xFFE8E2F0)),
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
                         child: Text(
-                          "No appointments",
-                          style: TextStyle(
-                            color: Color(0xFF7A6F8F),
-                            fontSize: 16,
+                          s.title,
+                          style: const TextStyle(
+                            color: Color(0xFF5A4A6A),
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
-                      )
-                    : ListView(
-                        padding: const EdgeInsets.all(20),
-                        children: _appointments.map(_appointmentTile).toList(),
                       ),
+                      IconButton(
+                        icon: const Icon(Icons.delete,
+                            color: Color(0xFFE57373)),
+                        onPressed: () {
+                          setState(() {
+                            _steps.remove(s);
+                          });
+                        },
+                      ),
+                    ],
+                  ),
+                );
+              }).toList(),
+            ),
+
+          const SizedBox(height: 10),
+          ElevatedButton(
+            onPressed: _addStepDialog,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF8A4FFF),
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
+              ),
+            ),
+            child: const Text(
+              "Add Step",
+              style: TextStyle(fontWeight: FontWeight.w700),
+            ),
+          ),
+
+          const SizedBox(height: 20),
+
+          // Emotional Load
+          _sectionTitle("Emotional Load (auto‑computed later)"),
+          Slider(
+            value: _emotionalLoad.toDouble(),
+            min: 1,
+            max: 10,
+            divisions: 9,
+            activeColor: const Color(0xFFE573B5),
+            inactiveColor: const Color(0xFFD8D2E3),
+            label: "$_emotionalLoad",
+            onChanged: (v) => setState(() => _emotionalLoad = v.toInt()),
+          ),
+
+          // Fatigue Impact
+          _sectionTitle("Fatigue Impact (auto‑computed later)"),
+          Slider(
+            value: _fatigueImpact.toDouble(),
+            min: 1,
+            max: 10,
+            divisions: 9,
+            activeColor: const Color(0xFFFFC94A),
+            inactiveColor: const Color(0xFFD8D2E3),
+            label: "$_fatigueImpact",
+            onChanged: (v) => setState(() => _fatigueImpact = v.toInt()),
           ),
         ],
       ),
