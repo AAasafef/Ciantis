@@ -1,214 +1,137 @@
-import 'package:uuid/uuid.dart';
 import '../models/routine_model.dart';
 import '../repositories/routine_repository.dart';
-import 'mode_engine_service.dart';
 
 class RoutineService {
-  final RoutineRepository _repository = RoutineRepository();
-  final ModeEngineService _modeEngine = ModeEngineService();
-  final Uuid _uuid = const Uuid();
+  final RoutineRepository repository;
 
-  // -----------------------------
-  // CREATE ROUTINE
-  // -----------------------------
+  RoutineService(this.repository);
+
+  // Create a new routine
   Future<void> createRoutine({
     required String title,
     String? description,
     required String category,
-    required int priority,
-    required List<RoutineStepModel> steps,
+    List<RoutineStepModel> steps = const [],
   }) async {
-    final now = DateTime.now();
-
-    // Calculate routine-level emotional + fatigue load
-    final emotionalLoad = _calculateRoutineEmotionalLoad(steps);
-    final fatigueImpact = _calculateRoutineFatigueImpact(steps);
-
     final routine = RoutineModel(
-      id: _uuid.v4(),
-      title: title.trim(),
-      description: description?.trim(),
+      title: title,
+      description: description,
       category: category,
-      priority: priority,
-      emotionalLoad: emotionalLoad,
-      fatigueImpact: fatigueImpact,
       steps: steps,
-      active: true,
-      streak: 0,
-      lastCompletedDate: null,
-      createdAt: now,
-      updatedAt: now,
+      emotionalLoad: _computeEmotionalLoad(steps),
+      fatigueImpact: _computeFatigueImpact(steps),
     );
 
-    await _repository.addRoutine(routine);
-
-    // MODE ENGINE HOOK
-    final suggestion = _modeEngine.evaluateModeSuggestion(
-      emotionalLoad: emotionalLoad,
-      fatigue: fatigueImpact,
-      isNight: now.hour >= 19,
-    );
-
-    _modeEngine.setSuggestion(suggestion);
+    await repository.createRoutine(routine);
   }
 
-  // -----------------------------
-  // UPDATE ROUTINE
-  // -----------------------------
+  // Update routine
   Future<void> updateRoutine(RoutineModel routine) async {
     final updated = routine.copyWith(
-      emotionalLoad: _calculateRoutineEmotionalLoad(routine.steps),
-      fatigueImpact: _calculateRoutineFatigueImpact(routine.steps),
+      emotionalLoad: _computeEmotionalLoad(routine.steps),
+      fatigueImpact: _computeFatigueImpact(routine.steps),
       updatedAt: DateTime.now(),
     );
 
-    await _repository.updateRoutine(updated);
+    await repository.updateRoutine(updated);
+  }
 
-    // MODE ENGINE HOOK
-    final suggestion = _modeEngine.evaluateModeSuggestion(
-      emotionalLoad: updated.emotionalLoad,
-      fatigue: updated.fatigueImpact,
-      isNight: DateTime.now().hour >= 19,
+  // Delete routine
+  Future<void> deleteRoutine(String id) async {
+    await repository.deleteRoutine(id);
+  }
+
+  // Get by ID
+  Future<RoutineModel?> getRoutineById(String id) async {
+    return await repository.getRoutineById(id);
+  }
+
+  // Get all routines
+  Future<List<RoutineModel>> getAllRoutines() async {
+    return await repository.getAllRoutines();
+  }
+
+  // Get active routines
+  Future<List<RoutineModel>> getActiveRoutines() async {
+    return await repository.getActiveRoutines();
+  }
+
+  // Get routines by category
+  Future<List<RoutineModel>> getRoutinesByCategory(String category) async {
+    return await repository.getRoutinesByCategory(category);
+  }
+
+  // Add a step
+  Future<void> addStep(String routineId, RoutineStepModel step) async {
+    await repository.addStep(routineId, step);
+  }
+
+  // Remove a step
+  Future<void> removeStep(String routineId, String stepId) async {
+    await repository.removeStep(routineId, stepId);
+  }
+
+  // Reorder steps
+  Future<void> reorderSteps(String routineId, List<RoutineStepModel> steps) async {
+    await repository.reorderSteps(routineId, steps);
+  }
+
+  // Mark a step as completed
+  Future<void> completeStep(String routineId, String stepId) async {
+    final routine = await repository.getRoutineById(routineId);
+    if (routine == null) return;
+
+    final updatedSteps = routine.steps.map((s) {
+      if (s.id == stepId) {
+        return s.copyWith(isCompleted: true);
+      }
+      return s;
+    }).toList();
+
+    final updatedRoutine = routine.copyWith(
+      steps: updatedSteps,
+      emotionalLoad: _computeEmotionalLoad(updatedSteps),
+      fatigueImpact: _computeFatigueImpact(updatedSteps),
     );
 
-    _modeEngine.setSuggestion(suggestion);
+    await repository.updateRoutine(updatedRoutine);
   }
 
-  // -----------------------------
-  // DELETE ROUTINE
-  // -----------------------------
-  Future<void> deleteRoutine(String id) async {
-    await _repository.deleteRoutine(id);
-  }
-
-  // -----------------------------
-  // GET ALL ROUTINES
-  // -----------------------------
-  Future<List<RoutineModel>> getAllRoutines() async {
-    return await _repository.getAllRoutines();
-  }
-
-  // -----------------------------
-  // GET ROUTINE BY ID
-  // -----------------------------
-  Future<RoutineModel?> getRoutineById(String id) async {
-    return await _repository.getRoutineById(id);
-  }
-
-  // -----------------------------
-  // COMPLETE ROUTINE (STREAK LOGIC)
-  // -----------------------------
-  Future<void> completeRoutine(String id) async {
-    final routine = await _repository.getRoutineById(id);
+  // Mark entire routine as completed
+  Future<void> completeRoutine(String routineId) async {
+    final routine = await repository.getRoutineById(routineId);
     if (routine == null) return;
 
     final now = DateTime.now();
-    final last = routine.lastCompletedDate;
-
     int newStreak = routine.streak;
 
-    if (last == null) {
-      newStreak = 1;
+    // Streak logic: if last completed yesterday or today, continue streak
+    if (routine.lastCompletedAt != null) {
+      final diff = now.difference(routine.lastCompletedAt!).inDays;
+      if (diff == 1) newStreak += 1;
+      else if (diff > 1) newStreak = 1;
     } else {
-      final lastDay = DateTime(last.year, last.month, last.day);
-      final today = DateTime(now.year, now.month, now.day);
-
-      if (today.difference(lastDay).inDays == 1) {
-        newStreak += 1; // continued streak
-      } else if (today.difference(lastDay).inDays > 1) {
-        newStreak = 1; // streak reset
-      }
+      newStreak = 1;
     }
 
-    final updated = routine.copyWith(
+    await repository.updateStreak(
+      id: routineId,
       streak: newStreak,
-      lastCompletedDate: now,
-      updatedAt: now,
+      lastCompletedAt: now,
     );
-
-    await _repository.updateRoutine(updated);
-
-    // MODE ENGINE HOOK
-    final suggestion = _modeEngine.evaluateModeSuggestion(
-      emotionalLoad: updated.emotionalLoad,
-      fatigue: updated.fatigueImpact,
-      isNight: now.hour >= 19,
-    );
-
-    _modeEngine.setSuggestion(suggestion);
   }
 
-  // -----------------------------
-  // SMART ROUTINE SUGGESTIONS
-  // -----------------------------
-  Future<List<RoutineModel>> getSmartSuggestions() async {
-    final routines = await getAllRoutines();
-
-    routines.sort((a, b) {
-      int scoreA = _routineScore(a);
-      int scoreB = _routineScore(b);
-      return scoreB.compareTo(scoreA);
-    });
-
-    return routines.take(5).toList();
+  // Compute emotional load (average)
+  int _computeEmotionalLoad(List<RoutineStepModel> steps) {
+    if (steps.isEmpty) return 3;
+    final total = steps.fold(0, (sum, s) => sum + s.emotionalLoad);
+    return (total / steps.length).round();
   }
 
-  int _routineScore(RoutineModel routine) {
-    int score = 0;
-
-    // Priority weighting
-    score += routine.priority * 10;
-
-    // Emotional load weighting
-    score += routine.emotionalLoad * 4;
-
-    // Fatigue impact weighting
-    score += routine.fatigueImpact * 3;
-
-    // Streak weighting
-    score += routine.streak * 2;
-
-    // Step count weighting (shorter routines get a slight boost)
-    score += (10 - routine.steps.length);
-
-    return score;
-  }
-
-  // -----------------------------
-  // ROUTINE EMOTIONAL LOAD ENGINE
-  // -----------------------------
-  int _calculateRoutineEmotionalLoad(List<RoutineStepModel> steps) {
-    if (steps.isEmpty) return 1;
-    final total = steps.fold<int>(0, (sum, s) => sum + s.emotionalLoad);
-    return (total / steps.length).round().clamp(1, 10);
-  }
-
-  // -----------------------------
-  // ROUTINE FATIGUE IMPACT ENGINE
-  // -----------------------------
-  int _calculateRoutineFatigueImpact(List<RoutineStepModel> steps) {
-    if (steps.isEmpty) return 1;
-    final total = steps.fold<int>(0, (sum, s) => sum + s.fatigueImpact);
-    return (total / steps.length).round().clamp(1, 10);
-  }
-
-  // -----------------------------
-  // CREATE ROUTINE STEP
-  // -----------------------------
-  RoutineStepModel createStep({
-    required String title,
-    required int order,
-    required int durationMinutes,
-    required int emotionalLoad,
-    required int fatigueImpact,
-  }) {
-    return RoutineStepModel(
-      id: _uuid.v4(),
-      title: title.trim(),
-      order: order,
-      durationMinutes: durationMinutes,
-      emotionalLoad: emotionalLoad.clamp(1, 10),
-      fatigueImpact: fatigueImpact.clamp(1, 10),
-    );
+  // Compute fatigue impact (average)
+  int _computeFatigueImpact(List<RoutineStepModel> steps) {
+    if (steps.isEmpty) return 3;
+    final total = steps.fold(0, (sum, s) => sum + s.fatigueImpact);
+    return (total / steps.length).round();
   }
 }
