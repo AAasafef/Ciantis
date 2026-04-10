@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../../data/models/task_model.dart';
 import '../../data/services/task_service.dart';
 
@@ -25,29 +26,40 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
     _task = widget.task;
   }
 
-  Future<void> _toggleCompletion() async {
-    await widget.taskService.toggleCompletion(_task);
-    final updated = await widget.taskService.getTaskById(_task.id);
-    if (updated != null) {
+  Future<void> _toggleComplete() async {
+    if (_task.isCompleted) {
+      // Un-complete
+      final updated = _task.copyWith(isCompleted: false);
+      await widget.taskService.updateTask(updated);
       setState(() => _task = updated);
+    } else {
+      // Complete
+      await widget.taskService.completeTask(_task.id);
+      final refreshed = await widget.taskService.getTaskById(_task.id);
+      if (refreshed != null) {
+        setState(() => _task = refreshed);
+      }
     }
   }
 
-  Future<void> _delete() async {
+  Future<void> _deleteTask() async {
     await widget.taskService.deleteTask(_task.id);
     Navigator.pop(context);
   }
 
-  Color _emotionalColor(int value) {
-    if (value >= 8) return const Color(0xFFE573B5);
-    if (value >= 5) return const Color(0xFF8A4FFF);
-    return const Color(0xFFB6AFC8);
-  }
-
-  Color _fatigueColor(int value) {
-    if (value >= 8) return const Color(0xFFFFC94A);
-    if (value >= 5) return const Color(0xFF7A6F8F);
-    return const Color(0xFFD8D2E3);
+  Color _priorityColor(int priority) {
+    switch (priority) {
+      case 5:
+        return const Color(0xFFE57373);
+      case 4:
+        return const Color(0xFFFF8A3D);
+      case 3:
+        return const Color(0xFFFFC94A);
+      case 2:
+        return const Color(0xFF8A4FFF);
+      default:
+        return const Color(0xFFB6AFC8);
+    }
   }
 
   Widget _infoRow(String label, String value) {
@@ -96,13 +108,13 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
           "Task Details",
           style: TextStyle(
             color: Color(0xFF8A4FFF),
-            fontWeight: FontWeight.w600,
+            fontWeight: FontWeight.w700,
           ),
         ),
         actions: [
           IconButton(
             icon: const Icon(Icons.delete, color: Color(0xFFE57373)),
-            onPressed: _delete,
+            onPressed: _deleteTask,
           ),
         ],
       ),
@@ -134,82 +146,62 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
 
           const SizedBox(height: 20),
 
-          // Emotional + fatigue indicators
+          // Priority
           Row(
             children: [
-            Container(
-              width: 14,
-              height: 14,
-              decoration: BoxDecoration(
-                color: _emotionalColor(_task.emotionalLoad),
-                shape: BoxShape.circle,
+              Container(
+                width: 14,
+                height: 14,
+                decoration: BoxDecoration(
+                  color: _priorityColor(_task.priority),
+                  shape: BoxShape.circle,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Text(
+                "Priority: ${_task.priority}",
+                style: const TextStyle(
+                  color: Color(0xFF5A4A6A),
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 20),
+
+          // Emotional + fatigue
+          _infoRow("Emotional Load", _task.emotionalLoad.toString()),
+          _infoRow("Fatigue Impact", _task.fatigueImpact.toString()),
+
+          // Category
+          _infoRow("Category", _task.category),
+
+          // Due date
+          _infoRow("Due Date", due),
+
+          const SizedBox(height: 30),
+
+          // Complete / Un-complete button
+          ElevatedButton(
+            onPressed: _toggleComplete,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: _task.isCompleted
+                  ? const Color(0xFF7A6F8F)
+                  : const Color(0xFF8A4FFF),
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
               ),
             ),
-            const SizedBox(width: 10),
-            Text(
-              "Emotional Load: ${_task.emotionalLoad}",
-              style: const TextStyle(
-                color: Color(0xFF5A4A6A),
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
-        ),
-
-        const SizedBox(height: 10),
-
-        Row(
-          children: [
-            Container(
-              width: 14,
-              height: 14,
-              decoration: BoxDecoration(
-                color: _fatigueColor(_task.fatigueImpact),
-                shape: BoxShape.circle,
-              ),
-            ),
-            const SizedBox(width: 10),
-            Text(
-              "Fatigue Impact: ${_task.fatigueImpact}",
-              style: const TextStyle(
-                color: Color(0xFF5A4A6A),
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
-        ),
-
-        const SizedBox(height: 20),
-
-        // Info rows
-        _infoRow("Category", _task.category),
-        _infoRow("Due Date", due),
-        _infoRow("Reminder", _task.reminderEnabled ? "Enabled" : "Disabled"),
-        if (_task.reminderEnabled)
-          _infoRow("Reminder Before", "${_task.reminderMinutesBefore} min"),
-        _infoRow("Recurring", _task.isRecurring ? "Yes" : "No"),
-        if (_task.isRecurring)
-          _infoRow("Recurrence Rule", _task.recurrenceRule ?? "—"),
-
-        const SizedBox(height: 30),
-
-        // Completion toggle
-        ElevatedButton(
-          onPressed: _toggleCompletion,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFF8A4FFF),
-            foregroundColor: Colors.white,
-            padding: const EdgeInsets.symmetric(vertical: 14),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(14),
+            child: Text(
+              _task.isCompleted ? "Mark as Incomplete" : "Mark as Complete",
+              style: const TextStyle(fontWeight: FontWeight.w700),
             ),
           ),
-          child: Text(
-            _task.isCompleted ? "Mark as Incomplete" : "Mark as Complete",
-            style: const TextStyle(fontWeight: FontWeight.w700),
-          ),
-        ),
-      ],
-    ),
-  );
+        ],
+      ),
+    );
+  }
 }
