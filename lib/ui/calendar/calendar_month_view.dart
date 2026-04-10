@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../data/services/appointment_service.dart';
 import '../../data/models/appointment_model.dart';
+import 'widgets/calendar_event_indicators.dart';
 
 class CalendarMonthView extends StatefulWidget {
   const CalendarMonthView({super.key});
@@ -58,7 +59,7 @@ class _CalendarMonthViewState extends State<CalendarMonthView> {
     final days = <DateTime>[];
 
     for (int i = 0; i < first.weekday - 1; i++) {
-      days.add(DateTime(0)); // empty placeholder
+      days.add(DateTime(0)); // placeholder
     }
 
     for (int d = 1; d <= last.day; d++) {
@@ -80,8 +81,7 @@ class _CalendarMonthViewState extends State<CalendarMonthView> {
     return GestureDetector(
       onTap: () {
         if (appts.isNotEmpty) {
-          Navigator.pushNamed(context, "/appointmentsForDay",
-              arguments: day);
+          Navigator.pushNamed(context, "/appointmentsForDay", arguments: day);
         }
       },
       child: Container(
@@ -121,22 +121,9 @@ class _CalendarMonthViewState extends State<CalendarMonthView> {
                 bottom: 10,
                 left: 12,
                 right: 12,
-                child: Row(
-                  children: appts.take(3).map((a) {
-                    final color = a.emotionalLoad >= 7
-                        ? const Color(0xFFE573B5)
-                        : const Color(0xFF8A4FFF);
-
-                    return Container(
-                      width: 8,
-                      height: 8,
-                      margin: const EdgeInsets.only(right: 4),
-                      decoration: BoxDecoration(
-                        color: color,
-                        shape: BoxShape.circle,
-                      ),
-                    );
-                  }).toList(),
+                child: CalendarEventIndicators(
+                  appointments: appts,
+                  maxDots: 3,
                 ),
               ),
           ],
