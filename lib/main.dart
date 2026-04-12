@@ -1,12 +1,7 @@
 import 'package:flutter/material.dart';
-import 'system/system.dart';
+import 'ciantis/ciantis_shell.dart';
 
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-
-  // Launch the Ciantis OS
-  await CiantisSystem.instance.launch();
-
+void main() {
   runApp(const CiantisApp());
 }
 
@@ -16,17 +11,20 @@ class CiantisApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      title: 'Ciantis',
       debugShowCheckedModeBanner: false,
-      title: 'Ciantis OS',
-      theme: ThemeData(
-        brightness: Brightness.light,
-        scaffoldBackgroundColor: const Color(0xFFF7F4F9),
-        fontFamily: 'Sans',
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF8A4FFF),
+      theme: ThemeData.dark().copyWith(
+        scaffoldBackgroundColor: Colors.black,
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Colors.black,
+          elevation: 0,
+        ),
+        colorScheme: const ColorScheme.dark(
+          primary: Colors.tealAccent,
+          secondary: Colors.tealAccent,
         ),
       ),
-      home: CiantisSystem.instance.buildSystemShell(),
+      home: const CiantisShell(),   // ← Universal Layer is now the root
     );
   }
 }
