@@ -1,59 +1,36 @@
-import 'daily_briefing_engine.dart';
-import 'next_best_action_engine.dart';
 import 'ciantis_context.dart';
-import '../../tasks/intelligence/task_adaptive_engine.dart';
+import 'developer_logger.dart';
+import 'ai_state.dart';
 
 /// UniversalSummaryEngine
 /// -----------------------
-/// Produces a unified summary combining:
-/// - Daily Briefing
-/// - Next Best Action
-/// - Recommendations
-/// - Current Mode
-///
-/// This is used by:
-/// - Home Dashboard
-/// - Morning Overview
-/// - Universal Hub (future)
+/// Generates a high-level summary of the user's current state.
+/// This is used for:
+/// - Explainability panel
+/// - Developer diagnostics
+/// - Internal AI reasoning
 class UniversalSummaryEngine {
-  // Singleton
   static final UniversalSummaryEngine instance =
       UniversalSummaryEngine._internal();
   UniversalSummaryEngine._internal();
 
   final _context = CiantisContext.instance;
-  final _briefing = DailyBriefingEngine.instance;
-  final _nba = NextBestActionEngine.instance;
-  final _adaptive = TaskAdaptiveEngine.instance;
 
-  // -----------------------------
-  // BUILD UNIVERSAL SUMMARY
-  // -----------------------------
   String build() {
-    final buffer = StringBuffer();
-
     final mode = _context.mode;
-    final briefing = _briefing.build();
-    final next = _nba.compute();
-    final recs = _adaptive.recommendations();
+    final energy = _context.energy;
+    final stress = _context.stress;
+    final taskLoad = _context.taskLoad;
+    final calendarLoad = _context.calendarLoad;
 
-    buffer.writeln("Ciantis Summary");
-    buffer.writeln("----------------");
-    buffer.writeln("Mode: $mode\n");
+    final summary =
+        "Summary: mode=$mode, energy=$energy, stress=$stress, taskLoad=$taskLoad, calendarLoad=$calendarLoad.";
 
-    buffer.writeln(next);
-    buffer.writeln("");
+    AiState.instance.summaryReason =
+        "Summary generated using current context values.";
 
-    buffer.writeln(briefing);
-    buffer.writeln("");
+    DeveloperLogger.log("Universal Summary generated");
 
-    if (recs.isNotEmpty) {
-      buffer.writeln("Recommendations:");
-      for (final r in recs) {
-        buffer.writeln("- $r");
-      }
-    }
-
-    return buffer.toString();
+    return summary;
   }
 }
