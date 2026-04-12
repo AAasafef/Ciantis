@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'ai_explainability_screen.dart';
+import 'developer_quick_actions_screen.dart';
 
 /// DeveloperMenuScreen
 /// --------------------
 /// Gives access to internal developer tools:
 /// - AI Explainability Panel
+/// - Quick Actions
 /// - Future debug tools
 class DeveloperMenuScreen extends StatelessWidget {
   const DeveloperMenuScreen({super.key});
@@ -25,6 +27,12 @@ class DeveloperMenuScreen extends StatelessWidget {
             title: "AI Explainability",
             icon: Icons.psychology_alt,
             screen: const AiExplainabilityScreen(),
+          ),
+          _item(
+            context,
+            title: "Quick Actions",
+            icon: Icons.flash_on,
+            screen: const DeveloperQuickActionsScreen(),
           ),
         ],
       ),
