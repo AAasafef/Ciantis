@@ -1,48 +1,36 @@
 import 'ciantis_context.dart';
-import 'mode_engine.dart';
-import '../../tasks/integrations/task_integration_hub.dart';
+import 'developer_logger.dart';
+import 'ai_state.dart';
 
 /// NextBestActionEngine
 /// ---------------------
-/// The global "Do This Next" brain of Ciantis.
-/// Combines:
-/// - Tasks OS
-/// - Mode Engine
-/// - CiantisContext
-///
-/// Calendar OS will plug in later.
-///
-/// This engine returns ONE action string.
+/// Determines the single most important task
+/// the user should do next based on:
+/// - Mode
+/// - Task load
+/// - Context
+/// - Priorities
 class NextBestActionEngine {
-  // Singleton
   static final NextBestActionEngine instance =
       NextBestActionEngine._internal();
   NextBestActionEngine._internal();
 
   final _context = CiantisContext.instance;
-  final _mode = ModeEngine.instance;
-  final _tasks = TaskIntegrationHub.instance;
 
-  // -----------------------------
-  // UNIVERSAL NEXT BEST ACTION
-  // -----------------------------
-  String compute() {
-    final now = DateTime.now();
-    _context.updateTime(now);
+  Map<String, dynamic>? compute() {
+    final mode = _context.mode;
 
-    // Ensure mode is up to date
-    _mode.updateModeAutomatically();
+    // Placeholder logic — real logic will be added later
+    final task = {
+      "title": "Example Task",
+      "reason": "Placeholder until task engine is implemented"
+    };
 
-    // Ask Tasks OS for the next best action
-    final task = _tasks.nextBestAction(
-      now: now,
-      mode: _context.mode,
-    );
+    AiState.instance.nextBestActionReason =
+        "Selected '${task["title"]}' because mode=$mode and placeholder logic.";
 
-    if (task != null) {
-      return "Next best action: ${task.title}";
-    }
+    DeveloperLogger.log("Next Best Action computed: ${task["title"]}");
 
-    return "No recommended action right now.";
+    return task;
   }
 }
