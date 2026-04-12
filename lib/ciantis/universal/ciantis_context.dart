@@ -1,79 +1,44 @@
+import 'developer_logger.dart';
+
 /// CiantisContext
-/// --------------
-/// Shared global state used by:
-/// - Tasks OS
-/// - Calendar OS
-/// - Mode Engine
-/// - Adaptive Intelligence
+/// ---------------
+/// Holds the user's dynamic state:
+/// - Energy
+/// - Stress
+/// - Task load
+/// - Calendar load
+/// - Mode
 ///
-/// This allows all modules to understand:
-/// - Current mode
-/// - Current energy level
-/// - Current stress level
-/// - Current task load
-/// - Current calendar load
-/// - Current time window
-///
-/// This is the "shared brain state" of Ciantis.
+/// This is refreshed every Universal Tick.
 class CiantisContext {
-  // Singleton
   static final CiantisContext instance = CiantisContext._internal();
   CiantisContext._internal();
 
-  // -----------------------------
-  // MODE (focus, fatigue, recovery, etc.)
-  // -----------------------------
-  String mode = "neutral";
+  int energy = 50;
+  int stress = 50;
+  int taskLoad = 40;
+  int calendarLoad = 40;
+  String mode = "default";
 
-  // -----------------------------
-  // ENERGY (0–100)
-  // -----------------------------
-  double energy = 50;
+  DateTime lastUpdated = DateTime.now();
 
-  // -----------------------------
-  // STRESS (0–100)
-  // -----------------------------
-  double stress = 20;
+  void refresh() {
+    // Placeholder logic — real logic will be added later
+    energy = (energy + 1).clamp(0, 100);
+    stress = (stress - 1).clamp(0, 100);
+    taskLoad = taskLoad;
+    calendarLoad = calendarLoad;
 
-  // -----------------------------
-  // TASK LOAD (0–100)
-  // -----------------------------
-  double taskLoad = 0;
+    lastUpdated = DateTime.now();
 
-  // -----------------------------
-  // CALENDAR LOAD (0–100)
-  // -----------------------------
-  double calendarLoad = 0;
+    DeveloperLogger.log(
+      "Context refreshed: energy=$energy, stress=$stress, "
+      "taskLoad=$taskLoad, calendarLoad=$calendarLoad"
+    );
+  }
 
-  // -----------------------------
-  // CURRENT TIME WINDOW
-  // -----------------------------
-  DateTime now = DateTime.now();
-
-  // -----------------------------
-  // UPDATE HELPERS
-  // -----------------------------
   void updateMode(String newMode) {
     mode = newMode;
-  }
-
-  void updateEnergy(double value) {
-    energy = value.clamp(0, 100);
-  }
-
-  void updateStress(double value) {
-    stress = value.clamp(0, 100);
-  }
-
-  void updateTaskLoad(double value) {
-    taskLoad = value.clamp(0, 100);
-  }
-
-  void updateCalendarLoad(double value) {
-    calendarLoad = value.clamp(0, 100);
-  }
-
-  void updateTime(DateTime time) {
-    now = time;
+    DeveloperLogger.log("Context mode updated → $newMode");
   }
 }
