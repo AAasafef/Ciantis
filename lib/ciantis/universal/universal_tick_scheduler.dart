@@ -1,47 +1,48 @@
 import 'dart:async';
-
-import 'universal_notifications_engine.dart';
+import 'developer_logger.dart';
+import 'ciantis_context.dart';
+import 'mode_engine.dart';
+import 'next_best_action_engine.dart';
+import 'daily_briefing_engine.dart';
+import 'universal_summary_engine.dart';
 
 /// UniversalTickScheduler
 /// -----------------------
-/// Runs the universal tick every X minutes.
-/// This keeps Ciantis alive:
-/// - Updates mode
-/// - Sends reminders
-/// - Sends mode-change notifications
-/// - Updates context time
-///
-/// This is the heartbeat of the Life OS.
+/// Runs the Ciantis heartbeat every X minutes.
+/// Triggers:
+/// - Context refresh
+/// - Mode update
+/// - Next Best Action update
+/// - Daily Briefing update
+/// - Summary update
+/// - Developer logs
 class UniversalTickScheduler {
-  // Singleton
   static final UniversalTickScheduler instance =
       UniversalTickScheduler._internal();
   UniversalTickScheduler._internal();
 
   Timer? _timer;
 
-  // -----------------------------
-  // START SCHEDULER
-  // -----------------------------
-  void start({Duration interval = const Duration(minutes: 5)}) {
+  void start({required Duration interval}) {
     _timer?.cancel();
-    _timer = Timer.periodic(interval, (_) {
-      UniversalNotificationsEngine.instance.tick();
-    });
+    _timer = Timer.periodic(interval, (_) => tick());
+
+    DeveloperLogger.log("Universal Tick Scheduler started (interval: $interval)");
   }
 
-  // -----------------------------
-  // STOP SCHEDULER
-  // -----------------------------
-  void stop() {
-    _timer?.cancel();
-    _timer = null;
-  }
-
-  // -----------------------------
-  // MANUAL TICK (for debugging)
-  // -----------------------------
   void tick() {
-    UniversalNotificationsEngine.instance.tick();
+    final ctx = CiantisContext.instance;
+    final mode = ModeEngine.instance;
+    final nba = NextBestActionEngine.instance;
+    final briefing = DailyBriefingEngine.instance;
+    final summary = UniversalSummaryEngine.instance;
+
+    ctx.refresh();
+    mode.updateModeAutomatically();
+    nba.compute();
+    briefing.build();
+    summary.build();
+
+    DeveloperLogger.log("Universal Tick executed");
   }
 }
