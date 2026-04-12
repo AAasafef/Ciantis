@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'ai_explainability_screen.dart';
 import 'developer_quick_actions_screen.dart';
 import 'developer_diagnostics_screen.dart';
+import 'developer_logs_screen.dart';
 
 /// DeveloperMenuScreen
 /// --------------------
@@ -9,6 +10,7 @@ import 'developer_diagnostics_screen.dart';
 /// - AI Explainability Panel
 /// - Quick Actions
 /// - Diagnostics
+/// - Logs
 class DeveloperMenuScreen extends StatelessWidget {
   const DeveloperMenuScreen({super.key});
 
@@ -40,6 +42,12 @@ class DeveloperMenuScreen extends StatelessWidget {
             title: "Diagnostics",
             icon: Icons.monitor_heart,
             screen: const DeveloperDiagnosticsScreen(),
+          ),
+          _item(
+            context,
+            title: "Logs",
+            icon: Icons.list_alt,
+            screen: const DeveloperLogsScreen(),
           ),
         ],
       ),
