@@ -1,7 +1,13 @@
 import 'package:flutter/material.dart';
 import 'ciantis/ciantis_shell.dart';
+import 'ciantis/universal/universal_tick_scheduler.dart';
 
 void main() {
+  // Start Ciantis heartbeat
+  UniversalTickScheduler.instance.start(
+    interval: const Duration(minutes: 5),
+  );
+
   runApp(const CiantisApp());
 }
 
@@ -24,7 +30,7 @@ class CiantisApp extends StatelessWidget {
           secondary: Colors.tealAccent,
         ),
       ),
-      home: const CiantisShell(),   // ← Universal Layer is now the root
+      home: const CiantisShell(),
     );
   }
 }
