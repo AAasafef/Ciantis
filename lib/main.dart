@@ -1,11 +1,16 @@
 import 'package:flutter/material.dart';
-import 'ciantis/ciantis_shell.dart';
+import 'ciantis/ui/ciantis_shell.dart';
+import 'ciantis/universal/developer_logger.dart';
 import 'ciantis/universal/universal_tick_scheduler.dart';
 
 void main() {
-  // Start Ciantis heartbeat
+  WidgetsFlutterBinding.ensureInitialized();
+
+  DeveloperLogger.log("App started");
+
+  // Start universal tick (every 1 minute for now)
   UniversalTickScheduler.instance.start(
-    interval: const Duration(minutes: 5),
+    interval: const Duration(minutes: 1),
   );
 
   runApp(const CiantisApp());
@@ -16,20 +21,12 @@ class CiantisApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    DeveloperLogger.log("CiantisApp build triggered");
+
     return MaterialApp(
-      title: 'Ciantis',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData.dark().copyWith(
-        scaffoldBackgroundColor: Colors.black,
-        appBarTheme: const AppBarTheme(
-          backgroundColor: Colors.black,
-          elevation: 0,
-        ),
-        colorScheme: const ColorScheme.dark(
-          primary: Colors.tealAccent,
-          secondary: Colors.tealAccent,
-        ),
-      ),
+      title: "Ciantis",
+      theme: ThemeData.dark(),
       home: const CiantisShell(),
     );
   }
