@@ -1,56 +1,37 @@
+import 'developer_logger.dart';
+
 /// AiState
-/// -------
-/// Stores the internal reasoning state of Ciantis.
-/// This is NOT the reasoning engine.
-/// It is a transparent log of:
-/// - Mode decisions
+/// --------
+/// Stores all explainability strings for:
+/// - Mode reasoning
 /// - Next Best Action reasoning
 /// - Daily Briefing reasoning
-/// - Adaptive Intelligence signals
-/// - Universal Hub decisions
+/// - Summary reasoning
+/// - Adaptive signals
 ///
-/// This will later power:
-/// - Explainability UI
-/// - Debug Console
-/// - Developer Tools
+/// This is what the Explainability Panel reads.
 class AiState {
-  // Singleton
   static final AiState instance = AiState._internal();
   AiState._internal();
 
-  // -----------------------------
-  // CURRENT MODE REASONING
-  // -----------------------------
   String modeReason = "";
-
-  // -----------------------------
-  // NEXT BEST ACTION REASONING
-  // -----------------------------
   String nextBestActionReason = "";
-
-  // -----------------------------
-  // DAILY BRIEFING REASONING
-  // -----------------------------
   String dailyBriefingReason = "";
-
-  // -----------------------------
-  // ADAPTIVE SIGNALS
-  // -----------------------------
+  String summaryReason = "";
   Map<String, dynamic> adaptiveSignals = {};
 
-  // -----------------------------
-  // UNIVERSAL SUMMARY REASONING
-  // -----------------------------
-  String summaryReason = "";
-
-  // -----------------------------
-  // CLEAR ALL (for debugging)
-  // -----------------------------
   void clear() {
     modeReason = "";
     nextBestActionReason = "";
     dailyBriefingReason = "";
-    adaptiveSignals = {};
     summaryReason = "";
+    adaptiveSignals = {};
+
+    DeveloperLogger.log("AI State cleared");
+  }
+
+  void updateAdaptiveSignal(String key, dynamic value) {
+    adaptiveSignals[key] = value;
+    DeveloperLogger.log("Adaptive signal updated: $key = $value");
   }
 }
