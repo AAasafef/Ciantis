@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
+import '../universal/ambient_motion_engine.dart';
 import '../universal/developer_logger.dart';
-import 'developer_logs_screen.dart';
 
 /// DeveloperLogOverlay
 /// --------------------
-/// A draggable, toggleable floating console that shows
-/// the most recent developer logs in real time.
-///
-/// This is extremely useful during development to see
-/// tick events, mode changes, context refreshes, etc.
+/// Luxury adaptive log overlay with:
+/// - Fade + slide entry
+/// - Pulse on new logs
+/// - Parallax scroll
+/// - Ambient motion identity
 class DeveloperLogOverlay extends StatefulWidget {
   const DeveloperLogOverlay({super.key});
 
@@ -16,120 +16,128 @@ class DeveloperLogOverlay extends StatefulWidget {
   State<DeveloperLogOverlay> createState() => _DeveloperLogOverlayState();
 }
 
-class _DeveloperLogOverlayState extends State<DeveloperLogOverlay> {
-  bool _visible = false;
-  Offset _position = const Offset(20, 120);
+class _DeveloperLogOverlayState extends State<DeveloperLogOverlay>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _entryController;
+  late Animation<double> _fade;
+  late Animation<Offset> _slide;
+
+  @override
+  void initState() {
+    super.initState();
+
+    final motion = AmbientMotionEngine.instance;
+
+    _entryController = AnimationController(
+      vsync: this,
+      duration: motion.adaptiveDuration,
+    );
+
+    _fade = CurvedAnimation(
+      parent: _entryController,
+      curve: motion.adaptiveCurve,
+    );
+
+    _slide = Tween<Offset>(
+      begin: const Offset(0, 0.04),
+      end: Offset.zero,
+    ).animate(
+      CurvedAnimation(
+        parent: _entryController,
+        curve: motion.adaptiveCurve,
+      ),
+    );
+
+    _entryController.forward();
+
+    DeveloperLogger.addListener(_onNewLog);
+  }
+
+  @override
+  void dispose() {
+    DeveloperLogger.removeListener(_onNewLog);
+    _entryController.dispose();
+    super.dispose();
+  }
+
+  void _onNewLog() {
+    _entryController.forward(from: 0.0);
+    setState(() {});
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        // Toggle button
-        Positioned(
-          left: 20,
-          bottom: 40,
-          child: FloatingActionButton(
-            backgroundColor: Colors.tealAccent,
-            child: Icon(
-              _visible ? Icons.visibility_off : Icons.visibility,
-              color: Colors.black,
-            ),
-            onPressed: () {
-              setState(() => _visible = !_visible);
-              DeveloperLogger.log(
-                "DeveloperLogOverlay: visibility toggled → $_visible"
-              );
-            },
-          ),
-        ),
+    final logs = DeveloperLogger.logs;
 
-        // Overlay console
-        if (_visible)
-          Positioned(
-            left: _position.dx,
-            top: _position.dy,
-            child: GestureDetector(
-              onPanUpdate: (details) {
-                setState(() {
-                  _position += details.delta;
-                });
-              },
-              child: Container(
-                width: 320,
-                height: 260,
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.85),
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(
-                    color: Colors.tealAccent.withOpacity(0.6),
-                    width: 1.2,
-                  ),
+    return IgnorePointer(
+      ignoring: false,
+      child: Align(
+        alignment: Alignment.bottomCenter,
+        child: FadeTransition(
+          opacity: _fade,
+          child: SlideTransition(
+            position: _slide,
+            child: Container(
+              height: 220,
+              margin: const EdgeInsets.only(bottom: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                color: Colors.black.withOpacity(0.75),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: Colors.white.withOpacity(0.10),
+                  width: 1.2,
                 ),
-                child: Column(
-                  children: [
-                    // Header
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text(
-                          "Live Logs",
-                          style: TextStyle(
-                            color: Colors.tealAccent,
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        IconButton(
-                          icon: const Icon(
-                            Icons.open_in_full,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.35),
+                    blurRadius: 20,
+                    offset: const Offset(0, 10),
+                  ),
+                ],
+              ),
+              child: NotificationListener<ScrollNotification>(
+                onNotification: (scroll) {
+                  setState(() {});
+                  return false;
+                },
+                child: ListView.builder(
+                  reverse: true,
+                  itemCount: logs.length,
+                  itemBuilder: (context, index) {
+                    final log = logs[logs.length - 1 - index];
+
+                    return AnimatedBuilder(
+                      animation: _entryController,
+                      builder: (context, child) {
+                        final scale = Tween<double>(begin: 1.0, end: 1.015)
+                            .chain(CurveTween(
+                                curve: AmbientMotionEngine.instance.adaptiveCurve))
+                            .evaluate(_entryController);
+
+                        return Transform.scale(
+                          scale: scale,
+                          child: child,
+                        );
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 4),
+                        child: Text(
+                          log,
+                          style: const TextStyle(
                             color: Colors.white70,
-                            size: 18,
+                            fontSize: 13,
                           ),
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => const DeveloperLogsScreen(),
-                              ),
-                            );
-                          },
                         ),
-                      ],
-                    ),
-
-                    const SizedBox(height: 6),
-
-                    // Log list
-                    Expanded(
-                      child: AnimatedBuilder(
-                        animation: DeveloperLogStore.instance,
-                        builder: (context, _) {
-                          final logs = DeveloperLogStore.instance.logs;
-
-                          return ListView.builder(
-                            reverse: true,
-                            itemCount: logs.length > 20 ? 20 : logs.length,
-                            itemBuilder: (context, index) {
-                              return Text(
-                                logs[index],
-                                style: const TextStyle(
-                                  color: Colors.white70,
-                                  fontSize: 11,
-                                  height: 1.25,
-                                ),
-                              );
-                            },
-                          );
-                        },
                       ),
-                    ),
-                  ],
+                    );
+                  },
                 ),
               ),
             ),
           ),
-      ],
+        ),
+      ),
     );
   }
 }
