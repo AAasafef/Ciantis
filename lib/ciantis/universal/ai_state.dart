@@ -2,14 +2,14 @@ import 'developer_logger.dart';
 
 /// AiState
 /// --------
-/// Stores all explainability strings for:
-/// - Mode reasoning
-/// - Next Best Action reasoning
-/// - Daily Briefing reasoning
-/// - Summary reasoning
+/// Stores all AI reasoning strings for:
+/// - Mode
+/// - Next Best Action
+/// - Daily Briefing
+/// - Summary
 /// - Adaptive signals
 ///
-/// This is what the Explainability Panel reads.
+/// This is what powers the AI Explainability Screen.
 class AiState {
   static final AiState instance = AiState._internal();
   AiState._internal();
@@ -18,20 +18,23 @@ class AiState {
   String nextBestActionReason = "";
   String dailyBriefingReason = "";
   String summaryReason = "";
-  Map<String, dynamic> adaptiveSignals = {};
 
+  final Map<String, dynamic> adaptiveSignals = {};
+
+  /// Update a single adaptive signal.
+  void updateAdaptiveSignal(String key, dynamic value) {
+    adaptiveSignals[key] = value;
+    DeveloperLogger.log("AI State: adaptive signal updated → $key = $value");
+  }
+
+  /// Clear all AI reasoning + signals.
   void clear() {
     modeReason = "";
     nextBestActionReason = "";
     dailyBriefingReason = "";
     summaryReason = "";
-    adaptiveSignals = {};
+    adaptiveSignals.clear();
 
     DeveloperLogger.log("AI State cleared");
-  }
-
-  void updateAdaptiveSignal(String key, dynamic value) {
-    adaptiveSignals[key] = value;
-    DeveloperLogger.log("Adaptive signal updated: $key = $value");
   }
 }
