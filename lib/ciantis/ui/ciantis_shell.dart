@@ -22,11 +22,12 @@ import 'developer_cognitive_strain_delta_panel.dart';
 import 'home/home_screen.dart';
 import 'tasks/tasks_screen.dart';
 import 'calendar/calendar_screen.dart';
+import 'profile/profile_screen.dart';
 
 /// CiantisShell
 /// -------------
 /// Main navigation container for the entire app.
-/// Home + Tasks + Calendar now load real luxury screens.
+/// All four main tabs now load real luxury screens.
 class CiantisShell extends StatefulWidget {
   const CiantisShell({super.key});
 
@@ -38,10 +39,10 @@ class _CiantisShellState extends State<CiantisShell> {
   int _index = 0;
 
   final List<Widget> _screens = const [
-    HomeScreen(),                     // Real Home
-    TasksScreen(),                    // Real Tasks
-    CalendarScreen(),                 // NEW: Real Calendar
-    PlaceholderScreen(title: "Profile"),
+    HomeScreen(),         // Real Home
+    TasksScreen(),        // Real Tasks
+    CalendarScreen(),     // Real Calendar
+    ProfileScreen(),      // NEW: Real Profile
   ];
 
   @override
@@ -121,24 +122,6 @@ class _CiantisShellState extends State<CiantisShell> {
 
         const DeveloperLogOverlay(),
       ],
-    );
-  }
-}
-
-class PlaceholderScreen extends StatelessWidget {
-  final String title;
-
-  const PlaceholderScreen({super.key, required this.title});
-
-  @override
-  Widget build(BuildContext context) {
-    DeveloperLogger.log("Opened Placeholder Screen → $title");
-
-    return Center(
-      child: Text(
-        title,
-        style: const TextStyle(color: Colors.white70, fontSize: 22),
-      ),
     );
   }
 }
