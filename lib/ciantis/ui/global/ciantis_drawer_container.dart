@@ -11,6 +11,7 @@ import 'ciantis_drawer.dart';
 /// - Global accessor
 /// - Swipe-to-open
 /// - Swipe-to-close
+/// - Depth shadow + ambient occlusion
 class CiantisDrawerContainer extends StatefulWidget {
   final Widget child;
 
@@ -57,21 +58,17 @@ class _CiantisDrawerContainerState extends State<CiantisDrawerContainer>
 
   void _onDragUpdate(DragUpdateDetails details) {
     final delta = details.primaryDelta ?? 0;
-
-    // Convert drag movement into controller progress
     _controller.value += delta / 260;
   }
 
   void _onDragEnd(DragEndDetails details) {
     final velocity = details.primaryVelocity ?? 0;
 
-    // Velocity-based settle
     if (velocity > 300) {
       open();
     } else if (velocity < -300) {
       close();
     } else {
-      // Settle based on position
       if (_controller.value > 0.5) {
         open();
       } else {
@@ -88,7 +85,6 @@ class _CiantisDrawerContainerState extends State<CiantisDrawerContainer>
         Positioned.fill(
           child: GestureDetector(
             behavior: HitTestBehavior.translucent,
-
             onHorizontalDragStart: (details) {
               if (!isOpen && details.globalPosition.dx > 24) return;
               _onDragStart(details);
@@ -106,13 +102,11 @@ class _CiantisDrawerContainerState extends State<CiantisDrawerContainer>
           animation: _controller,
           builder: (context, child) {
             final slide = 260 * _controller.value * 0.90;
+
             return GestureDetector(
               behavior: HitTestBehavior.translucent,
-
-              /// Allow swipe-to-close anywhere on screen
               onHorizontalDragUpdate: isOpen ? _onDragUpdate : null,
               onHorizontalDragEnd: isOpen ? _onDragEnd : null,
-
               child: Transform.translate(
                 offset: Offset(slide, 0),
                 child: child,
@@ -122,17 +116,46 @@ class _CiantisDrawerContainerState extends State<CiantisDrawerContainer>
           child: widget.child,
         ),
 
-        /// Drawer panel
+        /// Drawer panel + depth shadow
         AnimatedBuilder(
           animation: _controller,
           builder: (context, child) {
             final slide = -260 + (260 * _controller.value);
+
             return Positioned(
               left: slide,
               top: 0,
               bottom: 0,
               width: 260,
-              child: child!,
+              child: Stack(
+                children: [
+                  /// Ambient occlusion edge
+                  Positioned(
+                    right: -1,
+                    top: 0,
+                    bottom: 0,
+                    width: 18,
+                    child: IgnorePointer(
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.centerLeft,
+                            end: Alignment.centerRight,
+                            colors: [
+                              Colors.black.withOpacity(0.28),
+                              Colors.black.withOpacity(0.12),
+                              Colors.transparent,
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  /// Drawer content
+                  child!,
+                ],
+              ),
             );
           },
           child: const CiantisDrawer(),
