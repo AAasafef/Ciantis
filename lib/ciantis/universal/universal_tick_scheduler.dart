@@ -1,39 +1,50 @@
-import 'dart:async';
 import 'developer_logger.dart';
-import 'universal_tick.dart';
+import 'ciantis_context.dart';
+import 'mode_engine.dart';
+import 'next_best_action_engine.dart';
+import 'daily_briefing_engine.dart';
+import 'universal_summary_engine.dart';
 
-/// UniversalTickScheduler
-/// -----------------------
-/// Runs the Universal Tick on a fixed interval.
-/// This is the heartbeat of Ciantis.
-/// Everything updates from here.
-class UniversalTickScheduler {
-  static final UniversalTickScheduler instance =
-      UniversalTickScheduler._internal();
-  UniversalTickScheduler._internal();
+/// UniversalTick
+/// --------------
+/// The heartbeat of Ciantis.
+/// Runs every time the scheduler fires.
+/// Updates:
+/// - Context
+/// - Mode
+/// - Next Best Action
+/// - Daily Briefing
+/// - Summary
+class UniversalTick {
+  static final UniversalTick instance = UniversalTick._internal();
+  UniversalTick._internal();
 
-  Timer? _timer;
+  void run() {
+    DeveloperLogger.log("Universal Tick started");
 
-  void start({required Duration interval}) {
-    stop(); // ensure no duplicate timers
+    final ctx = CiantisContext.instance;
 
-    DeveloperLogger.log(
-      "UniversalTickScheduler started (interval = ${interval.inSeconds}s)"
-    );
+    // 1. Refresh context
+    ctx.refresh();
+    DeveloperLogger.log("Tick: Context refreshed");
 
-    _timer = Timer.periodic(interval, (_) {
-      DeveloperLogger.log("UniversalTickScheduler fired → running tick");
-      UniversalTick.instance.run();
-    });
+    // 2. Update mode
+    final newMode = ModeEngine.instance.compute();
+    ctx.updateMode(newMode);
+    DeveloperLogger.log("Tick: Mode updated → $newMode");
+
+    // 3. Compute next best action
+    final nba = NextBestActionEngine.instance.compute();
+    DeveloperLogger.log("Tick: Next Best Action computed → ${nba?["title"]}");
+
+    // 4. Generate daily briefing
+    final briefing = DailyBriefingEngine.instance.build();
+    DeveloperLogger.log("Tick: Daily Briefing generated");
+
+    // 5. Generate summary
+    final summary = UniversalSummaryEngine.instance.build();
+    DeveloperLogger.log("Tick: Summary generated");
+
+    DeveloperLogger.log("Universal Tick completed");
   }
-
-  void stop() {
-    if (_timer != null) {
-      DeveloperLogger.log("UniversalTickScheduler stopped");
-      _timer?.cancel();
-      _timer = null;
-    }
-  }
-
-  bool get isRunning => _timer != null;
 }
