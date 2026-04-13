@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import '../../../universal/ambient_motion_engine.dart';
 import '../../../universal/ambient_sound_engine.dart';
+import '../../../universal/ambient_haptics_engine.dart';
 
 /// TaskCapsule
 /// ------------
 /// Luxury micro-interactive task capsule.
-/// Adaptive motion + adaptive sound.
+/// Adaptive motion + adaptive sound + adaptive haptics.
 class TaskCapsule extends StatefulWidget {
   final String title;
   final VoidCallback? onTap;
@@ -42,8 +43,11 @@ class _TaskCapsuleState extends State<TaskCapsule>
   }
 
   void _pressDown() {
-    // 🔊 Play soft tactile sound
+    // 🔊 Soft tactile sound
     AmbientSoundEngine.instance.taskPress();
+
+    // 🤍 Soft luxury haptic tap
+    AmbientHapticsEngine.instance.softTap();
 
     _controller.forward();
   }
