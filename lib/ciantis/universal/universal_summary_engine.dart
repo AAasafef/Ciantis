@@ -1,35 +1,39 @@
 import 'ciantis_context.dart';
-import 'developer_logger.dart';
 import 'ai_state.dart';
+import 'developer_logger.dart';
 
 /// UniversalSummaryEngine
 /// -----------------------
-/// Generates a high-level summary of the user's current state.
+/// Produces a short, high‑level synthesis of the user's current state.
 /// This is used for:
 /// - Explainability panel
-/// - Developer diagnostics
-/// - Internal AI reasoning
+/// - Developer insights
+/// - Future narrative modules
 class UniversalSummaryEngine {
   static final UniversalSummaryEngine instance =
       UniversalSummaryEngine._internal();
   UniversalSummaryEngine._internal();
 
-  final _context = CiantisContext.instance;
-
   String build() {
-    final mode = _context.mode;
-    final energy = _context.energy;
-    final stress = _context.stress;
-    final taskLoad = _context.taskLoad;
-    final calendarLoad = _context.calendarLoad;
+    final ctx = CiantisContext.instance;
 
-    final summary =
-        "Summary: mode=$mode, energy=$energy, stress=$stress, taskLoad=$taskLoad, calendarLoad=$calendarLoad.";
+    DeveloperLogger.log(
+      "UniversalSummaryEngine: building summary using "
+      "mode=${ctx.mode}, energy=${ctx.energy}, stress=${ctx.stress}, "
+      "taskLoad=${ctx.taskLoad}, calendarLoad=${ctx.calendarLoad}"
+    );
+
+    String summary =
+        "You are currently in a '${ctx.mode}' state with energy at ${ctx.energy}, "
+        "stress at ${ctx.stress}, task load at ${ctx.taskLoad}, and calendar load at ${ctx.calendarLoad}. "
+        "This suggests a day shaped by your current emotional and workload balance.";
 
     AiState.instance.summaryReason =
-        "Summary generated using current context values.";
+        "Summary generated from mode=${ctx.mode}, energy=${ctx.energy}, "
+        "stress=${ctx.stress}, taskLoad=${ctx.taskLoad}, "
+        "calendarLoad=${ctx.calendarLoad}. Result: $summary";
 
-    DeveloperLogger.log("Universal Summary generated");
+    DeveloperLogger.log("UniversalSummaryEngine: summary generated");
 
     return summary;
   }
