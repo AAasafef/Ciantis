@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../universal/developer_logger.dart';
 import 'developer_menu_screen.dart';
 import 'developer_log_overlay.dart';
+import 'developer_orchestrator_panel.dart';
 import 'developer_status_bar.dart';
 import 'developer_reasoning_strip.dart';
 import 'developer_context_delta.dart';
@@ -22,27 +23,7 @@ import 'developer_cognitive_strain_delta_panel.dart';
 /// CiantisShell
 /// -------------
 /// The main navigation container for the entire app.
-/// Handles:
-/// - Bottom navigation
-/// - Screen switching
-/// - Developer menu access
-/// - Developer log overlay
-/// - Developer status bar (HUD)
-/// - Developer reasoning strip (AI thought ribbon)
-/// - Developer context delta panel (ΔE, ΔS, ΔT, ΔC)
-/// - Developer opportunity panel (Opportunity Label, Score, Confidence)
-/// - Developer NBA panel (Next Best Action)
-/// - Developer Daily Briefing panel (Narrative Summary)
-/// - Developer Summary panel (High-level synthesis)
-/// - Developer System Load panel (Performance metrics)
-/// - Developer Memory panel (Memory stability)
-/// - Developer Emotion panel (Emotional inference)
-/// - Developer Mode panel (Mode interpretation)
-/// - Developer Opportunity Delta panel (Opportunity-shift dynamics)
-/// - Developer Prediction panel (Future forecasting)
-/// - Developer Cognitive Load panel (Cognitive strain)
-/// - Developer Cognitive Health panel (Global cognitive integrity)
-/// - Developer Cognitive Strain Delta panel (Strain-shift dynamics)
+/// Now includes the Orchestrator Panel at the very top.
 class CiantisShell extends StatefulWidget {
   const CiantisShell({super.key});
 
@@ -99,25 +80,58 @@ class _CiantisShellState extends State<CiantisShell> {
           ),
           body: Column(
             children: [
+              /// NEW: Orchestrator Heartbeat Panel (top-most)
+              const DeveloperOrchestratorPanel(),
+
+              /// Developer HUD (real‑time system status)
               const DeveloperStatusBar(),
+
+              /// Developer Explainability Strip (AI reasoning ribbon)
               const DeveloperReasoningStrip(),
+
+              /// Developer Context Delta Panel (ΔE, ΔS, ΔT, ΔC)
               const DeveloperContextDelta(),
+
+              /// Developer Opportunity Panel (Opportunity Label, Score, Confidence)
               const DeveloperOpportunityPanel(),
+
+              /// Developer NBA Panel (Next Best Action)
               const DeveloperNbaPanel(),
+
+              /// Developer Daily Briefing Panel (Narrative Summary)
               const DeveloperDailyBriefingPanel(),
+
+              /// Developer Summary Panel (High-level synthesis)
               const DeveloperSummaryPanel(),
+
+              /// Developer System Load Panel (Performance metrics)
               const DeveloperSystemLoadPanel(),
+
+              /// Developer Memory Panel (Memory stability)
               const DeveloperMemoryPanel(),
+
+              /// Developer Emotion Panel (Emotional inference)
               const DeveloperEmotionPanel(),
+
+              /// Developer Mode Panel (Mode interpretation)
               const DeveloperModePanel(),
+
+              /// Developer Opportunity Delta Panel (Opportunity-shift dynamics)
               const DeveloperOpportunityDeltaPanel(),
+
+              /// Developer Prediction Panel (Future forecasting)
               const DeveloperPredictionPanel(),
+
+              /// Developer Cognitive Load Panel (Cognitive strain)
               const DeveloperCognitiveLoadPanel(),
+
+              /// Developer Cognitive Health Panel (Global cognitive integrity)
               const DeveloperCognitiveHealthPanel(),
 
-              /// NEW: Cognitive Strain Delta Panel
+              /// Developer Cognitive Strain Delta Panel (Strain-shift dynamics)
               const DeveloperCognitiveStrainDeltaPanel(),
 
+              /// Main screen content
               Expanded(child: _screens[_index]),
             ],
           ),
@@ -136,6 +150,7 @@ class _CiantisShellState extends State<CiantisShell> {
           ),
         ),
 
+        /// Developer Log Overlay (floating live console)
         const DeveloperLogOverlay(),
       ],
     );
