@@ -5,6 +5,7 @@ import '../universal/emotion_engine.dart';
 import '../universal/cognitive_load_engine.dart';
 import '../universal/opportunity_engine.dart';
 import '../universal/nba_engine.dart';
+import '../universal/ambient_motion_engine.dart';
 
 import 'developer_menu_screen.dart';
 import 'developer_log_overlay.dart';
@@ -35,7 +36,7 @@ import 'global/ciantis_drawer_container.dart';
 
 /// CiantisShell
 /// -------------
-/// Now fully connected to the cognitive engine through drawer callbacks.
+/// Now includes adaptive luxury screen transitions.
 class CiantisShell extends StatefulWidget {
   const CiantisShell({super.key});
 
@@ -66,10 +67,9 @@ class _CiantisShellState extends State<CiantisShell> {
 
   @override
   Widget build(BuildContext context) {
-    DeveloperLogger.log("CiantisShell build triggered (index=$_index)");
+    final motion = AmbientMotionEngine.instance;
 
     return CiantisDrawerContainer(
-      /// NEW: Cognitive engine reactions
       onOpen: () {
         DeveloperLogger.log("Drawer → Cognitive shift: Reflective Mode");
 
@@ -152,7 +152,32 @@ class _CiantisShellState extends State<CiantisShell> {
                 const DeveloperCognitiveHealthPanel(),
                 const DeveloperCognitiveStrainDeltaPanel(),
 
-                Expanded(child: _screens[_index]),
+                /// NEW: Adaptive luxury screen transitions
+                Expanded(
+                  child: AnimatedSwitcher(
+                    duration: motion.adaptiveDuration,
+                    switchInCurve: motion.adaptiveCurve,
+                    switchOutCurve: motion.adaptiveCurve,
+                    transitionBuilder: (child, animation) {
+                      final offsetAnimation = Tween<Offset>(
+                        begin: const Offset(0.04, 0),
+                        end: Offset.zero,
+                      ).animate(animation);
+
+                      return FadeTransition(
+                        opacity: animation,
+                        child: SlideTransition(
+                          position: offsetAnimation,
+                          child: child,
+                        ),
+                      );
+                    },
+                    child: KeyedSubtree(
+                      key: ValueKey(_index),
+                      child: _screens[_index],
+                    ),
+                  ),
+                ),
               ],
             ),
 
