@@ -91,7 +91,7 @@ class _CiantisShellState extends State<CiantisShell> {
         // 🔊 Cognitive shift sound
         AmbientSoundEngine.instance.cognitiveShift();
 
-        // 🤍 Gentle pulse haptic
+        // 🤍 Gentle pulse haptic (cognitive shift)
         AmbientHapticsEngine.instance.pulse();
       },
 
@@ -107,7 +107,7 @@ class _CiantisShellState extends State<CiantisShell> {
         // 🔊 Cognitive shift sound
         AmbientSoundEngine.instance.cognitiveShift();
 
-        // 🤍 Gentle pulse haptic
+        // 🤍 Gentle pulse haptic (cognitive shift)
         AmbientHapticsEngine.instance.pulse();
       },
 
