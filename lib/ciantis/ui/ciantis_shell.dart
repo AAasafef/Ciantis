@@ -19,11 +19,12 @@ import 'developer_prediction_panel.dart';
 import 'developer_cognitive_load_panel.dart';
 import 'developer_cognitive_health_panel.dart';
 import 'developer_cognitive_strain_delta_panel.dart';
+import 'home/home_screen.dart';
 
 /// CiantisShell
 /// -------------
-/// The main navigation container for the entire app.
-/// Now includes the Orchestrator Panel at the very top.
+/// Main navigation container for the entire app.
+/// Home tab now loads the real HomeScreen.
 class CiantisShell extends StatefulWidget {
   const CiantisShell({super.key});
 
@@ -35,7 +36,7 @@ class _CiantisShellState extends State<CiantisShell> {
   int _index = 0;
 
   final List<Widget> _screens = const [
-    PlaceholderScreen(title: "Home"),
+    HomeScreen(),                     // ← NEW: Real Home Screen
     PlaceholderScreen(title: "Tasks"),
     PlaceholderScreen(title: "Calendar"),
     PlaceholderScreen(title: "Profile"),
@@ -80,58 +81,24 @@ class _CiantisShellState extends State<CiantisShell> {
           ),
           body: Column(
             children: [
-              /// NEW: Orchestrator Heartbeat Panel (top-most)
               const DeveloperOrchestratorPanel(),
-
-              /// Developer HUD (real‑time system status)
               const DeveloperStatusBar(),
-
-              /// Developer Explainability Strip (AI reasoning ribbon)
               const DeveloperReasoningStrip(),
-
-              /// Developer Context Delta Panel (ΔE, ΔS, ΔT, ΔC)
               const DeveloperContextDelta(),
-
-              /// Developer Opportunity Panel (Opportunity Label, Score, Confidence)
               const DeveloperOpportunityPanel(),
-
-              /// Developer NBA Panel (Next Best Action)
               const DeveloperNbaPanel(),
-
-              /// Developer Daily Briefing Panel (Narrative Summary)
               const DeveloperDailyBriefingPanel(),
-
-              /// Developer Summary Panel (High-level synthesis)
               const DeveloperSummaryPanel(),
-
-              /// Developer System Load Panel (Performance metrics)
               const DeveloperSystemLoadPanel(),
-
-              /// Developer Memory Panel (Memory stability)
               const DeveloperMemoryPanel(),
-
-              /// Developer Emotion Panel (Emotional inference)
               const DeveloperEmotionPanel(),
-
-              /// Developer Mode Panel (Mode interpretation)
               const DeveloperModePanel(),
-
-              /// Developer Opportunity Delta Panel (Opportunity-shift dynamics)
               const DeveloperOpportunityDeltaPanel(),
-
-              /// Developer Prediction Panel (Future forecasting)
               const DeveloperPredictionPanel(),
-
-              /// Developer Cognitive Load Panel (Cognitive strain)
               const DeveloperCognitiveLoadPanel(),
-
-              /// Developer Cognitive Health Panel (Global cognitive integrity)
               const DeveloperCognitiveHealthPanel(),
-
-              /// Developer Cognitive Strain Delta Panel (Strain-shift dynamics)
               const DeveloperCognitiveStrainDeltaPanel(),
 
-              /// Main screen content
               Expanded(child: _screens[_index]),
             ],
           ),
@@ -150,7 +117,6 @@ class _CiantisShellState extends State<CiantisShell> {
           ),
         ),
 
-        /// Developer Log Overlay (floating live console)
         const DeveloperLogOverlay(),
       ],
     );
