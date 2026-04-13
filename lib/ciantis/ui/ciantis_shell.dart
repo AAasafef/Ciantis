@@ -23,11 +23,12 @@ import 'home/home_screen.dart';
 import 'tasks/tasks_screen.dart';
 import 'calendar/calendar_screen.dart';
 import 'profile/profile_screen.dart';
+import 'global/ciantis_drawer.dart';
 
 /// CiantisShell
 /// -------------
 /// Main navigation container for the entire app.
-/// All four main tabs now load real luxury screens.
+/// Drawer is now integrated globally.
 class CiantisShell extends StatefulWidget {
   const CiantisShell({super.key});
 
@@ -39,10 +40,10 @@ class _CiantisShellState extends State<CiantisShell> {
   int _index = 0;
 
   final List<Widget> _screens = const [
-    HomeScreen(),         // Real Home
-    TasksScreen(),        // Real Tasks
-    CalendarScreen(),     // Real Calendar
-    ProfileScreen(),      // NEW: Real Profile
+    HomeScreen(),
+    TasksScreen(),
+    CalendarScreen(),
+    ProfileScreen(),
   ];
 
   @override
@@ -64,9 +65,27 @@ class _CiantisShellState extends State<CiantisShell> {
       children: [
         Scaffold(
           backgroundColor: Colors.black,
+
+          /// NEW: Global luxury drawer
+          drawer: const CiantisDrawer(),
+
           appBar: AppBar(
             title: const Text("Ciantis"),
             backgroundColor: Colors.black,
+
+            /// Drawer trigger replaces developer icon
+            leading: Builder(
+              builder: (context) {
+                return IconButton(
+                  icon: const Icon(Icons.menu),
+                  onPressed: () {
+                    DeveloperLogger.log("CiantisShell → Drawer opened");
+                    Scaffold.of(context).openDrawer();
+                  },
+                );
+              },
+            ),
+
             actions: [
               IconButton(
                 icon: const Icon(Icons.developer_mode),
@@ -82,6 +101,7 @@ class _CiantisShellState extends State<CiantisShell> {
               ),
             ],
           ),
+
           body: Column(
             children: [
               const DeveloperOrchestratorPanel(),
@@ -105,6 +125,7 @@ class _CiantisShellState extends State<CiantisShell> {
               Expanded(child: _screens[_index]),
             ],
           ),
+
           bottomNavigationBar: BottomNavigationBar(
             backgroundColor: Colors.black,
             selectedItemColor: Colors.tealAccent,
