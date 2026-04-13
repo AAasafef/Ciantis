@@ -23,12 +23,11 @@ import 'home/home_screen.dart';
 import 'tasks/tasks_screen.dart';
 import 'calendar/calendar_screen.dart';
 import 'profile/profile_screen.dart';
-import 'global/ciantis_drawer.dart';
+import 'global/ciantis_drawer_container.dart';
 
 /// CiantisShell
 /// -------------
-/// Main navigation container for the entire app.
-/// Drawer is now integrated globally.
+/// Now wrapped in CiantisDrawerContainer for luxury drawer motion.
 class CiantisShell extends StatefulWidget {
   const CiantisShell({super.key});
 
@@ -61,88 +60,87 @@ class _CiantisShellState extends State<CiantisShell> {
   Widget build(BuildContext context) {
     DeveloperLogger.log("CiantisShell build triggered (index=$_index)");
 
-    return Stack(
-      children: [
-        Scaffold(
-          backgroundColor: Colors.black,
-
-          /// NEW: Global luxury drawer
-          drawer: const CiantisDrawer(),
-
-          appBar: AppBar(
-            title: const Text("Ciantis"),
+    return CiantisDrawerContainer(
+      child: Stack(
+        children: [
+          Scaffold(
             backgroundColor: Colors.black,
 
-            /// Drawer trigger replaces developer icon
-            leading: Builder(
-              builder: (context) {
-                return IconButton(
-                  icon: const Icon(Icons.menu),
-                  onPressed: () {
-                    DeveloperLogger.log("CiantisShell → Drawer opened");
-                    Scaffold.of(context).openDrawer();
-                  },
-                );
-              },
-            ),
+            appBar: AppBar(
+              title: const Text("Ciantis"),
+              backgroundColor: Colors.black,
 
-            actions: [
-              IconButton(
-                icon: const Icon(Icons.developer_mode),
-                onPressed: () {
-                  DeveloperLogger.log("CiantisShell → Developer Menu opened");
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const DeveloperMenuScreen(),
-                    ),
+              /// NEW: Luxury drawer trigger
+              leading: Builder(
+                builder: (context) {
+                  return IconButton(
+                    icon: const Icon(Icons.menu),
+                    onPressed: () {
+                      DeveloperLogger.log("CiantisShell → Drawer opened");
+                      CiantisDrawerContainer.of(context).open();
+                    },
                   );
                 },
               ),
-            ],
+
+              actions: [
+                IconButton(
+                  icon: const Icon(Icons.developer_mode),
+                  onPressed: () {
+                    DeveloperLogger.log("CiantisShell → Developer Menu opened");
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const DeveloperMenuScreen(),
+                      ),
+                    );
+                  },
+                ),
+              ],
+            ),
+
+            body: Column(
+              children: [
+                const DeveloperOrchestratorPanel(),
+                const DeveloperStatusBar(),
+                const DeveloperReasoningStrip(),
+                const DeveloperContextDelta(),
+                const DeveloperOpportunityPanel(),
+                const DeveloperNbaPanel(),
+                const DeveloperDailyBriefingPanel(),
+                const DeveloperSummaryPanel(),
+                const DeveloperSystemLoadPanel(),
+                const DeveloperMemoryPanel(),
+                const DeveloperEmotionPanel(),
+                const DeveloperModePanel(),
+                const DeveloperOpportunityDeltaPanel(),
+                const DeveloperPredictionPanel(),
+                const DeveloperCognitiveLoadPanel(),
+                const DeveloperCognitiveHealthPanel(),
+                const DeveloperCognitiveStrainDeltaPanel(),
+
+                Expanded(child: _screens[_index]),
+              ],
+            ),
+
+            bottomNavigationBar: BottomNavigationBar(
+              backgroundColor: Colors.black,
+              selectedItemColor: Colors.tealAccent,
+              unselectedItemColor: Colors.white38,
+              currentIndex: _index,
+              onTap: _onTabTapped,
+              items: const [
+                BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
+                BottomNavigationBarItem(icon: Icon(Icons.check_circle), label: "Tasks"),
+                BottomNavigationBarItem(icon: Icon(Icons.calendar_month), label: "Calendar"),
+                BottomNavigationBarItem(icon: Icon(Icons.person), label: "Profile"),
+              ],
+            ),
           ),
 
-          body: Column(
-            children: [
-              const DeveloperOrchestratorPanel(),
-              const DeveloperStatusBar(),
-              const DeveloperReasoningStrip(),
-              const DeveloperContextDelta(),
-              const DeveloperOpportunityPanel(),
-              const DeveloperNbaPanel(),
-              const DeveloperDailyBriefingPanel(),
-              const DeveloperSummaryPanel(),
-              const DeveloperSystemLoadPanel(),
-              const DeveloperMemoryPanel(),
-              const DeveloperEmotionPanel(),
-              const DeveloperModePanel(),
-              const DeveloperOpportunityDeltaPanel(),
-              const DeveloperPredictionPanel(),
-              const DeveloperCognitiveLoadPanel(),
-              const DeveloperCognitiveHealthPanel(),
-              const DeveloperCognitiveStrainDeltaPanel(),
-
-              Expanded(child: _screens[_index]),
-            ],
-          ),
-
-          bottomNavigationBar: BottomNavigationBar(
-            backgroundColor: Colors.black,
-            selectedItemColor: Colors.tealAccent,
-            unselectedItemColor: Colors.white38,
-            currentIndex: _index,
-            onTap: _onTabTapped,
-            items: const [
-              BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
-              BottomNavigationBarItem(icon: Icon(Icons.check_circle), label: "Tasks"),
-              BottomNavigationBarItem(icon: Icon(Icons.calendar_month), label: "Calendar"),
-              BottomNavigationBarItem(icon: Icon(Icons.person), label: "Profile"),
-            ],
-          ),
-        ),
-
-        const DeveloperLogOverlay(),
-      ],
+          const DeveloperLogOverlay(),
+        ],
+      ),
     );
   }
 }
