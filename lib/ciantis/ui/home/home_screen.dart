@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../universal/ambient_motion_engine.dart';
+import '../../universal/ambient_sound_engine.dart';
 
 /// HomeScreen
 /// -----------
@@ -8,6 +9,7 @@ import '../../universal/ambient_motion_engine.dart';
 /// - Parallax
 /// - Micro-interactions
 /// - Staggered module entry
+/// - Quick action sound hooks
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -167,7 +169,12 @@ class _HomeScreenState extends State<HomeScreen>
     final motion = AmbientMotionEngine.instance;
 
     return GestureDetector(
-      onTapDown: (_) => _entryController.reverse(),
+      onTapDown: (_) {
+        _entryController.reverse();
+
+        // 🔊 Play quick action sound
+        AmbientSoundEngine.instance.quickAction();
+      },
       onTapUp: (_) => _entryController.forward(),
       onTapCancel: () => _entryController.forward(),
 
