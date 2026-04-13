@@ -1,15 +1,22 @@
 import 'package:flutter/material.dart';
 import '../universal/ai_state.dart';
+import '../universal/developer_logger.dart';
 
 /// AiExplainabilityScreen
 /// -----------------------
-/// Developer-only screen that shows
-/// the internal reasoning state of Ciantis.
+/// Shows all AI reasoning strings:
+/// - Mode reasoning
+/// - Next Best Action reasoning
+/// - Daily Briefing reasoning
+/// - Summary reasoning
+/// - Adaptive signals
 class AiExplainabilityScreen extends StatelessWidget {
   const AiExplainabilityScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    DeveloperLogger.log("Opened AI Explainability Screen");
+
     final ai = AiState.instance;
 
     return Scaffold(
@@ -24,8 +31,8 @@ class AiExplainabilityScreen extends StatelessWidget {
           _section("Mode Reasoning", ai.modeReason),
           _section("Next Best Action Reasoning", ai.nextBestActionReason),
           _section("Daily Briefing Reasoning", ai.dailyBriefingReason),
-          _section("Adaptive Signals", ai.adaptiveSignals.toString()),
           _section("Summary Reasoning", ai.summaryReason),
+          _section("Adaptive Signals", ai.adaptiveSignals.toString()),
         ],
       ),
     );
