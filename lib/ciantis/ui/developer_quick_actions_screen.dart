@@ -1,47 +1,20 @@
 import 'package:flutter/material.dart';
+import '../universal/developer_logger.dart';
 import '../universal/ai_state.dart';
-import '../universal/universal_tick_scheduler.dart';
-import '../universal/mode_engine.dart';
-import '../universal/ciantis_context.dart';
 
 /// DeveloperQuickActionsScreen
 /// ----------------------------
-/// Provides fast developer actions:
-/// - Trigger universal tick
-/// - Clear AI state
-/// - Force mode change
-/// - Refresh context
-class DeveloperQuickActionsScreen extends StatefulWidget {
+/// Provides developer-only buttons to:
+/// - Clear AI State
+/// - Trigger manual tick
+/// - Add test adaptive signals
+class DeveloperQuickActionsScreen extends StatelessWidget {
   const DeveloperQuickActionsScreen({super.key});
 
   @override
-  State<DeveloperQuickActionsScreen> createState() =>
-      _DeveloperQuickActionsScreenState();
-}
-
-class _DeveloperQuickActionsScreenState
-    extends State<DeveloperQuickActionsScreen> {
-  final _ai = AiState.instance;
-  final _context = CiantisContext.instance;
-  final _mode = ModeEngine.instance;
-
-  void _runTick() {
-    UniversalTickScheduler.instance.tick();
-    setState(() {});
-  }
-
-  void _clearAi() {
-    _ai.clear();
-    setState(() {});
-  }
-
-  void _forceMode(String mode) {
-    _context.updateMode(mode);
-    setState(() {});
-  }
-
-  @override
   Widget build(BuildContext context) {
+    DeveloperLogger.log("Opened Developer Quick Actions Screen");
+
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
@@ -51,52 +24,52 @@ class _DeveloperQuickActionsScreenState
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [
-          _button("Run Universal Tick", Icons.access_time, _runTick),
-          _button("Clear AI State", Icons.delete_forever, _clearAi),
-          const SizedBox(height: 20),
-          _label("Force Mode"),
-          _button("Focus Mode", Icons.center_focus_strong,
-              () => _forceMode("focus")),
-          _button("Recovery Mode", Icons.self_improvement,
-              () => _forceMode("recovery")),
-          _button("Execution Mode", Icons.bolt,
-              () => _forceMode("execution")),
-          _button("Default Mode", Icons.refresh,
-              () => _forceMode("default")),
+          _button(
+            label: "Clear AI State",
+            icon: Icons.delete_sweep,
+            onTap: () {
+              AiState.instance.clear();
+              DeveloperLogger.log("Quick Action: AI State cleared");
+            },
+          ),
+          _button(
+            label: "Add Test Adaptive Signal",
+            icon: Icons.bolt,
+            onTap: () {
+              AiState.instance.updateAdaptiveSignal(
+                "test_signal",
+                DateTime.now().millisecondsSinceEpoch,
+              );
+              DeveloperLogger.log("Quick Action: Test adaptive signal added");
+            },
+          ),
         ],
       ),
     );
   }
 
-  Widget _button(String title, IconData icon, VoidCallback onTap) {
+  Widget _button({
+    required String label,
+    required IconData icon,
+    required VoidCallback onTap,
+  }) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 16),
+      margin: const EdgeInsets.only(bottom: 20),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.06),
+        color: Colors.white.withOpacity(0.05),
         borderRadius: BorderRadius.circular(14),
       ),
       child: ListTile(
         leading: Icon(icon, color: Colors.tealAccent),
         title: Text(
-          title,
-          style: const TextStyle(color: Colors.white70),
+          label,
+          style: const TextStyle(
+            color: Colors.white70,
+            fontSize: 16,
+          ),
         ),
         trailing: const Icon(Icons.chevron_right, color: Colors.white38),
         onTap: onTap,
-      ),
-    );
-  }
-
-  Widget _label(String text) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Text(
-        text,
-        style: const TextStyle(
-          color: Colors.tealAccent,
-          fontSize: 18,
-          fontWeight: FontWeight.w600,
-        ),
       ),
     );
   }
