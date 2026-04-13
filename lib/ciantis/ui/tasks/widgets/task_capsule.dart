@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import '../../../universal/ambient_motion_engine.dart';
+import '../../../universal/ambient_sound_engine.dart';
 
 /// TaskCapsule
 /// ------------
 /// Luxury micro-interactive task capsule.
-/// Adaptive motion based on cognitive + emotional state.
+/// Adaptive motion + adaptive sound.
 class TaskCapsule extends StatefulWidget {
   final String title;
   final VoidCallback? onTap;
@@ -41,6 +42,9 @@ class _TaskCapsuleState extends State<TaskCapsule>
   }
 
   void _pressDown() {
+    // 🔊 Play soft tactile sound
+    AmbientSoundEngine.instance.taskPress();
+
     _controller.forward();
   }
 
