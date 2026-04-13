@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'ciantis/ui/ciantis_shell.dart';
 import 'ciantis/universal/developer_logger.dart';
 import 'ciantis/universal/universal_tick_scheduler.dart';
+import 'ciantis/ui/developer_hotkey_layer.dart';
 
 void main() {
   DeveloperLogger.log("App startup: main() invoked");
@@ -13,7 +14,7 @@ void main() {
     interval: const Duration(seconds: 10),
   );
 
-  DeveloperLogger.log("Launching CiantisShell");
+  DeveloperLogger.log("Launching CiantisApp");
 
   runApp(const CiantisApp());
 }
@@ -29,7 +30,9 @@ class CiantisApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: "Ciantis",
       theme: ThemeData.dark(),
-      home: const CiantisShell(),
+      home: const DeveloperHotkeyLayer(
+        child: CiantisShell(),
+      ),
     );
   }
 }
