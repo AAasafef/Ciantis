@@ -1,5 +1,11 @@
 import 'package:flutter/material.dart';
 import '../universal/developer_logger.dart';
+import '../universal/mode_engine.dart';
+import '../universal/emotion_engine.dart';
+import '../universal/cognitive_load_engine.dart';
+import '../universal/opportunity_engine.dart';
+import '../universal/nba_engine.dart';
+
 import 'developer_menu_screen.dart';
 import 'developer_log_overlay.dart';
 import 'developer_orchestrator_panel.dart';
@@ -19,15 +25,17 @@ import 'developer_prediction_panel.dart';
 import 'developer_cognitive_load_panel.dart';
 import 'developer_cognitive_health_panel.dart';
 import 'developer_cognitive_strain_delta_panel.dart';
+
 import 'home/home_screen.dart';
 import 'tasks/tasks_screen.dart';
 import 'calendar/calendar_screen.dart';
 import 'profile/profile_screen.dart';
+
 import 'global/ciantis_drawer_container.dart';
 
 /// CiantisShell
 /// -------------
-/// Now wrapped in CiantisDrawerContainer for luxury drawer motion.
+/// Now fully connected to the cognitive engine through drawer callbacks.
 class CiantisShell extends StatefulWidget {
   const CiantisShell({super.key});
 
@@ -61,6 +69,32 @@ class _CiantisShellState extends State<CiantisShell> {
     DeveloperLogger.log("CiantisShell build triggered (index=$_index)");
 
     return CiantisDrawerContainer(
+      /// NEW: Cognitive engine reactions
+      onOpen: () {
+        DeveloperLogger.log("Drawer → Cognitive shift: Reflective Mode");
+
+        ModeEngine.instance.setMode("Reflective");
+        EmotionEngine.instance.setEmotion("Calm");
+        CognitiveLoadEngine.instance.adjustLoad(-0.05);
+        OpportunityEngine.instance.setOpportunity("Navigation");
+        NbaEngine.instance.pause();
+      },
+
+      onClose: () {
+        DeveloperLogger.log("Drawer → Cognitive shift: Resume Normal Mode");
+
+        ModeEngine.instance.restorePreviousMode();
+        EmotionEngine.instance.stabilize();
+        CognitiveLoadEngine.instance.recalculate();
+        OpportunityEngine.instance.clear();
+        NbaEngine.instance.resume();
+      },
+
+      onProgress: (value) {
+        CognitiveLoadEngine.instance.adjustLoad(value * -0.01);
+        EmotionEngine.instance.smooth(value);
+      },
+
       child: Stack(
         children: [
           Scaffold(
@@ -70,7 +104,6 @@ class _CiantisShellState extends State<CiantisShell> {
               title: const Text("Ciantis"),
               backgroundColor: Colors.black,
 
-              /// NEW: Luxury drawer trigger
               leading: Builder(
                 builder: (context) {
                   return IconButton(
