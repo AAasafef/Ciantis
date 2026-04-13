@@ -4,14 +4,16 @@ import 'ciantis/universal/developer_logger.dart';
 import 'ciantis/universal/universal_tick_scheduler.dart';
 
 void main() {
+  DeveloperLogger.log("App startup: main() invoked");
+
   WidgetsFlutterBinding.ensureInitialized();
 
-  DeveloperLogger.log("App started");
-
-  // Start universal tick (every 1 minute for now)
+  // Start the universal tick scheduler
   UniversalTickScheduler.instance.start(
-    interval: const Duration(minutes: 1),
+    interval: const Duration(seconds: 10),
   );
+
+  DeveloperLogger.log("Launching CiantisShell");
 
   runApp(const CiantisApp());
 }
