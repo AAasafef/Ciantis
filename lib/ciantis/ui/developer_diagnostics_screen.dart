@@ -1,21 +1,23 @@
 import 'package:flutter/material.dart';
 import '../universal/ciantis_context.dart';
-import '../universal/ai_state.dart';
+import '../universal/developer_logger.dart';
 
 /// DeveloperDiagnosticsScreen
 /// ---------------------------
-/// Shows real-time internal system values:
-/// - Current mode
-/// - Context values
-/// - AI state snapshot
-/// - Last updated time
+/// Shows raw context values:
+/// - Energy
+/// - Stress
+/// - Task load
+/// - Calendar load
+/// - Last updated timestamp
 class DeveloperDiagnosticsScreen extends StatelessWidget {
   const DeveloperDiagnosticsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    DeveloperLogger.log("Opened Developer Diagnostics Screen");
+
     final ctx = CiantisContext.instance;
-    final ai = AiState.instance;
 
     return Scaffold(
       backgroundColor: Colors.black,
@@ -26,24 +28,18 @@ class DeveloperDiagnosticsScreen extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [
-          _section("Current Mode", ctx.mode),
-          _section("Energy", ctx.energy.toString()),
-          _section("Stress", ctx.stress.toString()),
-          _section("Task Load", ctx.taskLoad.toString()),
-          _section("Calendar Load", ctx.calendarLoad.toString()),
-          _section("Last Updated", ctx.lastUpdated.toString()),
-          const SizedBox(height: 20),
-          _section("AI State: Mode Reason", ai.modeReason),
-          _section("AI State: NBA Reason", ai.nextBestActionReason),
-          _section("AI State: Briefing Reason", ai.dailyBriefingReason),
-          _section("AI State: Summary Reason", ai.summaryReason),
-          _section("AI State: Adaptive Signals", ai.adaptiveSignals.toString()),
+          _item("Energy", ctx.energy.toString()),
+          _item("Stress", ctx.stress.toString()),
+          _item("Task Load", ctx.taskLoad.toString()),
+          _item("Calendar Load", ctx.calendarLoad.toString()),
+          _item("Mode", ctx.mode),
+          _item("Last Updated", ctx.lastUpdated.toIso8601String()),
         ],
       ),
     );
   }
 
-  Widget _section(String title, String content) {
+  Widget _item(String label, String value) {
     return Container(
       padding: const EdgeInsets.all(16),
       margin: const EdgeInsets.only(bottom: 20),
@@ -51,23 +47,21 @@ class DeveloperDiagnosticsScreen extends StatelessWidget {
         color: Colors.white.withOpacity(0.05),
         borderRadius: BorderRadius.circular(14),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(
-            title,
+            label,
             style: const TextStyle(
               color: Colors.tealAccent,
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
+              fontSize: 16,
             ),
           ),
-          const SizedBox(height: 12),
           Text(
-            content.isEmpty ? "(no data)" : content,
+            value,
             style: const TextStyle(
               color: Colors.white70,
-              height: 1.4,
+              fontSize: 16,
             ),
           ),
         ],
