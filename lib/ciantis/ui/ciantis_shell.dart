@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../universal/developer_logger.dart';
 import 'developer_menu_screen.dart';
+import 'developer_log_overlay.dart';
 
 /// CiantisShell
 /// -------------
@@ -9,6 +10,7 @@ import 'developer_menu_screen.dart';
 /// - Bottom navigation
 /// - Screen switching
 /// - Developer menu access
+/// - Developer log overlay (live console)
 class CiantisShell extends StatefulWidget {
   const CiantisShell({super.key});
 
@@ -41,52 +43,59 @@ class _CiantisShellState extends State<CiantisShell> {
   Widget build(BuildContext context) {
     DeveloperLogger.log("CiantisShell build triggered (index=$_index)");
 
-    return Scaffold(
-      backgroundColor: Colors.black,
-      appBar: AppBar(
-        title: const Text("Ciantis"),
-        backgroundColor: Colors.black,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.developer_mode),
-            onPressed: () {
-              DeveloperLogger.log("CiantisShell → Developer Menu opened");
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => const DeveloperMenuScreen(),
-                ),
-              );
-            },
+    return Stack(
+      children: [
+        Scaffold(
+          backgroundColor: Colors.black,
+          appBar: AppBar(
+            title: const Text("Ciantis"),
+            backgroundColor: Colors.black,
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.developer_mode),
+                onPressed: () {
+                  DeveloperLogger.log("CiantisShell → Developer Menu opened");
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const DeveloperMenuScreen(),
+                    ),
+                  );
+                },
+              ),
+            ],
           ),
-        ],
-      ),
-      body: _screens[_index],
-      bottomNavigationBar: BottomNavigationBar(
-        backgroundColor: Colors.black,
-        selectedItemColor: Colors.tealAccent,
-        unselectedItemColor: Colors.white38,
-        currentIndex: _index,
-        onTap: _onTabTapped,
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: "Home",
+          body: _screens[_index],
+          bottomNavigationBar: BottomNavigationBar(
+            backgroundColor: Colors.black,
+            selectedItemColor: Colors.tealAccent,
+            unselectedItemColor: Colors.white38,
+            currentIndex: _index,
+            onTap: _onTabTapped,
+            items: const [
+              BottomNavigationBarItem(
+                icon: Icon(Icons.home),
+                label: "Home",
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.check_circle),
+                label: "Tasks",
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.calendar_month),
+                label: "Calendar",
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.person),
+                label: "Profile",
+              ),
+            ],
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.check_circle),
-            label: "Tasks",
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.calendar_month),
-            label: "Calendar",
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: "Profile",
-          ),
-        ],
-      ),
+        ),
+
+        /// Developer Log Overlay (floating live console)
+        const DeveloperLogOverlay(),
+      ],
     );
   }
 }
