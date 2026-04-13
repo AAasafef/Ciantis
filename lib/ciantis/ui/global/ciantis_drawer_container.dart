@@ -8,10 +8,23 @@ import 'ciantis_drawer.dart';
 /// - Parallax slide
 /// - Fade overlay
 /// - Smooth easing
+/// - Global accessor (of(context))
 class CiantisDrawerContainer extends StatefulWidget {
   final Widget child;
 
   const CiantisDrawerContainer({super.key, required this.child});
+
+  /// NEW: Global accessor
+  static _CiantisDrawerContainerState of(BuildContext context) {
+    final state = context.findAncestorStateOfType<_CiantisDrawerContainerState>();
+    if (state == null) {
+      throw FlutterError(
+        "CiantisDrawerContainer.of(context) called with no ancestor.\n"
+        "Ensure your widget tree is wrapped in CiantisDrawerContainer.",
+      );
+    }
+    return state;
+  }
 
   @override
   State<CiantisDrawerContainer> createState() => _CiantisDrawerContainerState();
