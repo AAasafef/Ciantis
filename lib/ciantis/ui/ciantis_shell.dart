@@ -13,6 +13,7 @@ import 'developer_system_load_panel.dart';
 import 'developer_memory_panel.dart';
 import 'developer_emotion_panel.dart';
 import 'developer_mode_panel.dart';
+import 'developer_opportunity_delta_panel.dart';
 
 /// CiantisShell
 /// -------------
@@ -33,6 +34,7 @@ import 'developer_mode_panel.dart';
 /// - Developer Memory panel (Memory stability)
 /// - Developer Emotion panel (Emotional inference)
 /// - Developer Mode panel (Mode interpretation)
+/// - Developer Opportunity Delta panel (Opportunity-shift dynamics)
 class CiantisShell extends StatefulWidget {
   const CiantisShell({super.key});
 
@@ -121,6 +123,9 @@ class _CiantisShellState extends State<CiantisShell> {
 
               /// Developer Mode Panel (Mode interpretation)
               const DeveloperModePanel(),
+
+              /// Developer Opportunity Delta Panel (Opportunity-shift dynamics)
+              const DeveloperOpportunityDeltaPanel(),
 
               /// Main screen content
               Expanded(child: _screens[_index]),
