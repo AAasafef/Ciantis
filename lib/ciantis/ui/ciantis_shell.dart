@@ -3,6 +3,7 @@ import '../universal/developer_logger.dart';
 import 'developer_menu_screen.dart';
 import 'developer_log_overlay.dart';
 import 'developer_status_bar.dart';
+import 'developer_reasoning_strip.dart';
 
 /// CiantisShell
 /// -------------
@@ -13,6 +14,7 @@ import 'developer_status_bar.dart';
 /// - Developer menu access
 /// - Developer log overlay
 /// - Developer status bar (HUD)
+/// - Developer reasoning strip (AI thought ribbon)
 class CiantisShell extends StatefulWidget {
   const CiantisShell({super.key});
 
@@ -71,6 +73,9 @@ class _CiantisShellState extends State<CiantisShell> {
             children: [
               /// Developer HUD (real‑time system status)
               const DeveloperStatusBar(),
+
+              /// Developer Explainability Strip (AI reasoning ribbon)
+              const DeveloperReasoningStrip(),
 
               /// Main screen content
               Expanded(child: _screens[_index]),
