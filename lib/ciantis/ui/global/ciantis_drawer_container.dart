@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'ciantis_drawer.dart';
+import '../../universal/ambient_motion_engine.dart';
 
 /// CiantisDrawerContainer
 /// -----------------------
@@ -12,12 +13,23 @@ import 'ciantis_drawer.dart';
 /// - Swipe-to-open
 /// - Swipe-to-close
 /// - Depth shadow + ambient occlusion
+/// - Drawer state callbacks (AI-aware)
+/// - Ambient Motion Engine integration
 class CiantisDrawerContainer extends StatefulWidget {
   final Widget child;
 
-  const CiantisDrawerContainer({super.key, required this.child});
+  final VoidCallback? onOpen;
+  final VoidCallback? onClose;
+  final ValueChanged<double>? onProgress;
 
-  /// Global accessor
+  const CiantisDrawerContainer({
+    super.key,
+    required this.child,
+    this.onOpen,
+    this.onClose,
+    this.onProgress,
+  });
+
   static _CiantisDrawerContainerState of(BuildContext context) {
     final state = context.findAncestorStateOfType<_CiantisDrawerContainerState>();
     if (state == null) {
@@ -43,17 +55,39 @@ class _CiantisDrawerContainerState extends State<CiantisDrawerContainer>
   void initState() {
     super.initState();
 
+    /// NEW: Use Ambient Motion Engine for duration
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 420),
-      curve: const Cubic(0.22, 0.61, 0.36, 1),
+      duration: AmbientMotionEngine.instance.adaptiveDuration,
     );
+
+    _controller.addListener(_handleProgress);
+    _controller.addStatusListener(_handleStatus);
   }
 
-  void open() => _controller.forward();
-  void close() => _controller.reverse();
+  void _handleProgress() {
+    widget.onProgress?.call(_controller.value);
+  }
 
-  /// Gesture handling
+  void _handleStatus(AnimationStatus status) {
+    if (status == AnimationStatus.completed) {
+      widget.onOpen?.call();
+    } else if (status == AnimationStatus.dismissed) {
+      widget.onClose?.call();
+    }
+  }
+
+  void open() {
+    /// NEW: Re-sync duration dynamically
+    _controller.duration = AmbientMotionEngine.instance.adaptiveDuration;
+    _controller.forward();
+  }
+
+  void close() {
+    _controller.duration = AmbientMotionEngine.instance.adaptiveDuration;
+    _controller.reverse();
+  }
+
   void _onDragStart(DragStartDetails details) {}
 
   void _onDragUpdate(DragUpdateDetails details) {
@@ -79,6 +113,8 @@ class _CiantisDrawerContainerState extends State<CiantisDrawerContainer>
 
   @override
   Widget build(BuildContext context) {
+    final curve = AmbientMotionEngine.instance.adaptiveCurve;
+
     return Stack(
       children: [
         /// Swipe-to-open (left edge)
@@ -101,7 +137,8 @@ class _CiantisDrawerContainerState extends State<CiantisDrawerContainer>
         AnimatedBuilder(
           animation: _controller,
           builder: (context, child) {
-            final slide = 260 * _controller.value * 0.90;
+            final progress = curve.transform(_controller.value);
+            final slide = 260 * progress * 0.90;
 
             return GestureDetector(
               behavior: HitTestBehavior.translucent,
@@ -120,7 +157,8 @@ class _CiantisDrawerContainerState extends State<CiantisDrawerContainer>
         AnimatedBuilder(
           animation: _controller,
           builder: (context, child) {
-            final slide = -260 + (260 * _controller.value);
+            final progress = curve.transform(_controller.value);
+            final slide = -260 + (260 * progress);
 
             return Positioned(
               left: slide,
@@ -129,7 +167,6 @@ class _CiantisDrawerContainerState extends State<CiantisDrawerContainer>
               width: 260,
               child: Stack(
                 children: [
-                  /// Ambient occlusion edge
                   Positioned(
                     right: -1,
                     top: 0,
@@ -151,8 +188,6 @@ class _CiantisDrawerContainerState extends State<CiantisDrawerContainer>
                       ),
                     ),
                   ),
-
-                  /// Drawer content
                   child!,
                 ],
               ),
@@ -165,10 +200,12 @@ class _CiantisDrawerContainerState extends State<CiantisDrawerContainer>
         AnimatedBuilder(
           animation: _controller,
           builder: (context, child) {
+            final progress = curve.transform(_controller.value);
+
             return IgnorePointer(
               ignoring: !isOpen,
               child: Opacity(
-                opacity: _controller.value * 0.45,
+                opacity: progress * 0.45,
                 child: GestureDetector(
                   onTap: close,
                   onHorizontalDragUpdate: _onDragUpdate,
