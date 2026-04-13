@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../universal/ambient_motion_engine.dart';
 import '../../universal/ambient_sound_engine.dart';
+import '../../universal/ambient_haptics_engine.dart';
 
 /// HomeScreen
 /// -----------
@@ -9,7 +10,7 @@ import '../../universal/ambient_sound_engine.dart';
 /// - Parallax
 /// - Micro-interactions
 /// - Staggered module entry
-/// - Quick action sound hooks
+/// - Quick action sound + haptics
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -174,6 +175,9 @@ class _HomeScreenState extends State<HomeScreen>
 
         // 🔊 Play quick action sound
         AmbientSoundEngine.instance.quickAction();
+
+        // 🤍 Soft luxury haptic tap
+        AmbientHapticsEngine.instance.softTap();
       },
       onTapUp: (_) => _entryController.forward(),
       onTapCancel: () => _entryController.forward(),
