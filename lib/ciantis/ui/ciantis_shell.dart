@@ -64,7 +64,7 @@ class _CiantisShellState extends State<CiantisShell> {
   void _onTabTapped(int newIndex) {
     DeveloperLogger.log("CiantisShell: tab changed → index $newIndex");
 
-    // 🔊 Play screen transition sound
+    // 🔊 Screen transition sound
     AmbientSoundEngine.instance.screenTransition();
 
     setState(() => _index = newIndex);
