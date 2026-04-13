@@ -7,6 +7,7 @@ import 'developer_reasoning_strip.dart';
 import 'developer_context_delta.dart';
 import 'developer_opportunity_panel.dart';
 import 'developer_nba_panel.dart';
+import 'developer_daily_briefing_panel.dart';
 
 /// CiantisShell
 /// -------------
@@ -21,6 +22,7 @@ import 'developer_nba_panel.dart';
 /// - Developer context delta panel (ΔE, ΔS, ΔT, ΔC)
 /// - Developer opportunity panel (Opportunity Label, Score, Confidence)
 /// - Developer NBA panel (Next Best Action)
+/// - Developer Daily Briefing panel (Narrative Summary)
 class CiantisShell extends StatefulWidget {
   const CiantisShell({super.key});
 
@@ -91,6 +93,9 @@ class _CiantisShellState extends State<CiantisShell> {
 
               /// Developer NBA Panel (Next Best Action)
               const DeveloperNbaPanel(),
+
+              /// Developer Daily Briefing Panel (Narrative Summary)
+              const DeveloperDailyBriefingPanel(),
 
               /// Main screen content
               Expanded(child: _screens[_index]),
