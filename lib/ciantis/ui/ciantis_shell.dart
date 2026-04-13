@@ -11,6 +11,7 @@ import 'developer_daily_briefing_panel.dart';
 import 'developer_summary_panel.dart';
 import 'developer_system_load_panel.dart';
 import 'developer_memory_panel.dart';
+import 'developer_emotion_panel.dart';
 
 /// CiantisShell
 /// -------------
@@ -29,6 +30,7 @@ import 'developer_memory_panel.dart';
 /// - Developer Summary panel (High-level synthesis)
 /// - Developer System Load panel (Performance metrics)
 /// - Developer Memory panel (Memory stability)
+/// - Developer Emotion panel (Emotional inference)
 class CiantisShell extends StatefulWidget {
   const CiantisShell({super.key});
 
@@ -111,6 +113,9 @@ class _CiantisShellState extends State<CiantisShell> {
 
               /// Developer Memory Panel (Memory stability)
               const DeveloperMemoryPanel(),
+
+              /// Developer Emotion Panel (Emotional inference)
+              const DeveloperEmotionPanel(),
 
               /// Main screen content
               Expanded(child: _screens[_index]),
