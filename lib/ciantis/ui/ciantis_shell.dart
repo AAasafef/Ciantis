@@ -9,6 +9,7 @@ import 'developer_opportunity_panel.dart';
 import 'developer_nba_panel.dart';
 import 'developer_daily_briefing_panel.dart';
 import 'developer_summary_panel.dart';
+import 'developer_system_load_panel.dart';
 
 /// CiantisShell
 /// -------------
@@ -25,6 +26,7 @@ import 'developer_summary_panel.dart';
 /// - Developer NBA panel (Next Best Action)
 /// - Developer Daily Briefing panel (Narrative Summary)
 /// - Developer Summary panel (High-level synthesis)
+/// - Developer System Load panel (Performance metrics)
 class CiantisShell extends StatefulWidget {
   const CiantisShell({super.key});
 
@@ -101,6 +103,9 @@ class _CiantisShellState extends State<CiantisShell> {
 
               /// Developer Summary Panel (High-level synthesis)
               const DeveloperSummaryPanel(),
+
+              /// Developer System Load Panel (Performance metrics)
+              const DeveloperSystemLoadPanel(),
 
               /// Main screen content
               Expanded(child: _screens[_index]),
