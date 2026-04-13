@@ -17,6 +17,7 @@ import 'developer_opportunity_delta_panel.dart';
 import 'developer_prediction_panel.dart';
 import 'developer_cognitive_load_panel.dart';
 import 'developer_cognitive_health_panel.dart';
+import 'developer_cognitive_strain_delta_panel.dart';
 
 /// CiantisShell
 /// -------------
@@ -41,6 +42,7 @@ import 'developer_cognitive_health_panel.dart';
 /// - Developer Prediction panel (Future forecasting)
 /// - Developer Cognitive Load panel (Cognitive strain)
 /// - Developer Cognitive Health panel (Global cognitive integrity)
+/// - Developer Cognitive Strain Delta panel (Strain-shift dynamics)
 class CiantisShell extends StatefulWidget {
   const CiantisShell({super.key});
 
@@ -97,52 +99,25 @@ class _CiantisShellState extends State<CiantisShell> {
           ),
           body: Column(
             children: [
-              /// Developer HUD (real‑time system status)
               const DeveloperStatusBar(),
-
-              /// Developer Explainability Strip (AI reasoning ribbon)
               const DeveloperReasoningStrip(),
-
-              /// Developer Context Delta Panel (ΔE, ΔS, ΔT, ΔC)
               const DeveloperContextDelta(),
-
-              /// Developer Opportunity Panel (Opportunity Label, Score, Confidence)
               const DeveloperOpportunityPanel(),
-
-              /// Developer NBA Panel (Next Best Action)
               const DeveloperNbaPanel(),
-
-              /// Developer Daily Briefing Panel (Narrative Summary)
               const DeveloperDailyBriefingPanel(),
-
-              /// Developer Summary Panel (High-level synthesis)
               const DeveloperSummaryPanel(),
-
-              /// Developer System Load Panel (Performance metrics)
               const DeveloperSystemLoadPanel(),
-
-              /// Developer Memory Panel (Memory stability)
               const DeveloperMemoryPanel(),
-
-              /// Developer Emotion Panel (Emotional inference)
               const DeveloperEmotionPanel(),
-
-              /// Developer Mode Panel (Mode interpretation)
               const DeveloperModePanel(),
-
-              /// Developer Opportunity Delta Panel (Opportunity-shift dynamics)
               const DeveloperOpportunityDeltaPanel(),
-
-              /// Developer Prediction Panel (Future forecasting)
               const DeveloperPredictionPanel(),
-
-              /// Developer Cognitive Load Panel (Cognitive strain)
               const DeveloperCognitiveLoadPanel(),
-
-              /// Developer Cognitive Health Panel (Global cognitive integrity)
               const DeveloperCognitiveHealthPanel(),
 
-              /// Main screen content
+              /// NEW: Cognitive Strain Delta Panel
+              const DeveloperCognitiveStrainDeltaPanel(),
+
               Expanded(child: _screens[_index]),
             ],
           ),
@@ -153,37 +128,20 @@ class _CiantisShellState extends State<CiantisShell> {
             currentIndex: _index,
             onTap: _onTabTapped,
             items: const [
-              BottomNavigationBarItem(
-                icon: Icon(Icons.home),
-                label: "Home",
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.check_circle),
-                label: "Tasks",
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.calendar_month),
-                label: "Calendar",
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.person),
-                label: "Profile",
-              ),
+              BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
+              BottomNavigationBarItem(icon: Icon(Icons.check_circle), label: "Tasks"),
+              BottomNavigationBarItem(icon: Icon(Icons.calendar_month), label: "Calendar"),
+              BottomNavigationBarItem(icon: Icon(Icons.person), label: "Profile"),
             ],
           ),
         ),
 
-        /// Developer Log Overlay (floating live console)
         const DeveloperLogOverlay(),
       ],
     );
   }
 }
 
-/// PlaceholderScreen
-/// ------------------
-/// Temporary screen used until full modules are built.
-/// Logs when opened.
 class PlaceholderScreen extends StatelessWidget {
   final String title;
 
@@ -196,10 +154,7 @@ class PlaceholderScreen extends StatelessWidget {
     return Center(
       child: Text(
         title,
-        style: const TextStyle(
-          color: Colors.white70,
-          fontSize: 22,
-        ),
+        style: const TextStyle(color: Colors.white70, fontSize: 22),
       ),
     );
   }
