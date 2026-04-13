@@ -5,6 +5,7 @@ import 'developer_log_overlay.dart';
 import 'developer_status_bar.dart';
 import 'developer_reasoning_strip.dart';
 import 'developer_context_delta.dart';
+import 'developer_opportunity_panel.dart';
 
 /// CiantisShell
 /// -------------
@@ -17,6 +18,7 @@ import 'developer_context_delta.dart';
 /// - Developer status bar (HUD)
 /// - Developer reasoning strip (AI thought ribbon)
 /// - Developer context delta panel (ΔE, ΔS, ΔT, ΔC)
+/// - Developer opportunity panel (Opportunity Label, Score, Confidence)
 class CiantisShell extends StatefulWidget {
   const CiantisShell({super.key});
 
@@ -81,6 +83,9 @@ class _CiantisShellState extends State<CiantisShell> {
 
               /// Developer Context Delta Panel (ΔE, ΔS, ΔT, ΔC)
               const DeveloperContextDelta(),
+
+              /// Developer Opportunity Panel (Opportunity Label, Score, Confidence)
+              const DeveloperOpportunityPanel(),
 
               /// Main screen content
               Expanded(child: _screens[_index]),
