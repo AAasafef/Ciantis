@@ -6,6 +6,7 @@ import '../universal/cognitive_load_engine.dart';
 import '../universal/opportunity_engine.dart';
 import '../universal/nba_engine.dart';
 import '../universal/ambient_motion_engine.dart';
+import '../universal/ambient_sound_engine.dart';
 
 import 'developer_menu_screen.dart';
 import 'developer_log_overlay.dart';
@@ -36,7 +37,7 @@ import 'global/ciantis_drawer_container.dart';
 
 /// CiantisShell
 /// -------------
-/// Now includes adaptive luxury screen transitions.
+/// Now includes adaptive luxury screen transitions + sound.
 class CiantisShell extends StatefulWidget {
   const CiantisShell({super.key});
 
@@ -62,6 +63,10 @@ class _CiantisShellState extends State<CiantisShell> {
 
   void _onTabTapped(int newIndex) {
     DeveloperLogger.log("CiantisShell: tab changed → index $newIndex");
+
+    // 🔊 Play screen transition sound
+    AmbientSoundEngine.instance.screenTransition();
+
     setState(() => _index = newIndex);
   }
 
@@ -78,6 +83,9 @@ class _CiantisShellState extends State<CiantisShell> {
         CognitiveLoadEngine.instance.adjustLoad(-0.05);
         OpportunityEngine.instance.setOpportunity("Navigation");
         NbaEngine.instance.pause();
+
+        // 🔊 Cognitive shift sound
+        AmbientSoundEngine.instance.cognitiveShift();
       },
 
       onClose: () {
@@ -88,6 +96,9 @@ class _CiantisShellState extends State<CiantisShell> {
         CognitiveLoadEngine.instance.recalculate();
         OpportunityEngine.instance.clear();
         NbaEngine.instance.resume();
+
+        // 🔊 Cognitive shift sound
+        AmbientSoundEngine.instance.cognitiveShift();
       },
 
       onProgress: (value) {
@@ -152,7 +163,7 @@ class _CiantisShellState extends State<CiantisShell> {
                 const DeveloperCognitiveHealthPanel(),
                 const DeveloperCognitiveStrainDeltaPanel(),
 
-                /// NEW: Adaptive luxury screen transitions
+                /// Adaptive luxury screen transitions
                 Expanded(
                   child: AnimatedSwitcher(
                     duration: motion.adaptiveDuration,
