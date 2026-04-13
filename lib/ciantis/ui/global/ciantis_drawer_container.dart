@@ -9,7 +9,8 @@ import 'ciantis_drawer.dart';
 /// - Fade overlay
 /// - Smooth easing
 /// - Global accessor
-/// - Swipe-to-open gesture
+/// - Swipe-to-open
+/// - Swipe-to-close
 class CiantisDrawerContainer extends StatefulWidget {
   final Widget child;
 
@@ -83,12 +84,11 @@ class _CiantisDrawerContainerState extends State<CiantisDrawerContainer>
   Widget build(BuildContext context) {
     return Stack(
       children: [
-        /// Gesture detector for swipe-to-open
+        /// Swipe-to-open (left edge)
         Positioned.fill(
           child: GestureDetector(
             behavior: HitTestBehavior.translucent,
 
-            /// Only allow swipe from left 24px when closed
             onHorizontalDragStart: (details) {
               if (!isOpen && details.globalPosition.dx > 24) return;
               _onDragStart(details);
@@ -97,20 +97,26 @@ class _CiantisDrawerContainerState extends State<CiantisDrawerContainer>
               if (!isOpen && details.globalPosition.dx > 24) return;
               _onDragUpdate(details);
             },
-            onHorizontalDragEnd: (details) {
-              _onDragEnd(details);
-            },
+            onHorizontalDragEnd: _onDragEnd,
           ),
         ),
 
-        /// Main content (parallax)
+        /// Main content (swipe-to-close)
         AnimatedBuilder(
           animation: _controller,
           builder: (context, child) {
             final slide = 260 * _controller.value * 0.90;
-            return Transform.translate(
-              offset: Offset(slide, 0),
-              child: child,
+            return GestureDetector(
+              behavior: HitTestBehavior.translucent,
+
+              /// Allow swipe-to-close anywhere on screen
+              onHorizontalDragUpdate: isOpen ? _onDragUpdate : null,
+              onHorizontalDragEnd: isOpen ? _onDragEnd : null,
+
+              child: Transform.translate(
+                offset: Offset(slide, 0),
+                child: child,
+              ),
             );
           },
           child: widget.child,
@@ -142,6 +148,8 @@ class _CiantisDrawerContainerState extends State<CiantisDrawerContainer>
                 opacity: _controller.value * 0.45,
                 child: GestureDetector(
                   onTap: close,
+                  onHorizontalDragUpdate: _onDragUpdate,
+                  onHorizontalDragEnd: _onDragEnd,
                   child: Container(color: Colors.black),
                 ),
               ),
