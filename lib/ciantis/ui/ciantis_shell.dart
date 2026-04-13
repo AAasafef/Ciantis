@@ -20,11 +20,12 @@ import 'developer_cognitive_load_panel.dart';
 import 'developer_cognitive_health_panel.dart';
 import 'developer_cognitive_strain_delta_panel.dart';
 import 'home/home_screen.dart';
+import 'tasks/tasks_screen.dart';
 
 /// CiantisShell
 /// -------------
 /// Main navigation container for the entire app.
-/// Home tab now loads the real HomeScreen.
+/// Home + Tasks now load real luxury screens.
 class CiantisShell extends StatefulWidget {
   const CiantisShell({super.key});
 
@@ -36,8 +37,8 @@ class _CiantisShellState extends State<CiantisShell> {
   int _index = 0;
 
   final List<Widget> _screens = const [
-    HomeScreen(),                     // ← NEW: Real Home Screen
-    PlaceholderScreen(title: "Tasks"),
+    HomeScreen(),                     // Real Home
+    TasksScreen(),                    // NEW: Real Tasks Screen
     PlaceholderScreen(title: "Calendar"),
     PlaceholderScreen(title: "Profile"),
   ];
