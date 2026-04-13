@@ -3,18 +3,19 @@ import 'ciantis_drawer.dart';
 
 /// CiantisDrawerContainer
 /// -----------------------
-/// Wraps the entire app and provides:
-/// - Custom luxury drawer motion
+/// Provides:
+/// - Luxury drawer motion
 /// - Parallax slide
 /// - Fade overlay
 /// - Smooth easing
-/// - Global accessor (of(context))
+/// - Global accessor
+/// - Swipe-to-open gesture
 class CiantisDrawerContainer extends StatefulWidget {
   final Widget child;
 
   const CiantisDrawerContainer({super.key, required this.child});
 
-  /// NEW: Global accessor
+  /// Global accessor
   static _CiantisDrawerContainerState of(BuildContext context) {
     final state = context.findAncestorStateOfType<_CiantisDrawerContainerState>();
     if (state == null) {
@@ -50,15 +51,63 @@ class _CiantisDrawerContainerState extends State<CiantisDrawerContainer>
   void open() => _controller.forward();
   void close() => _controller.reverse();
 
+  /// Gesture handling
+  void _onDragStart(DragStartDetails details) {}
+
+  void _onDragUpdate(DragUpdateDetails details) {
+    final delta = details.primaryDelta ?? 0;
+
+    // Convert drag movement into controller progress
+    _controller.value += delta / 260;
+  }
+
+  void _onDragEnd(DragEndDetails details) {
+    final velocity = details.primaryVelocity ?? 0;
+
+    // Velocity-based settle
+    if (velocity > 300) {
+      open();
+    } else if (velocity < -300) {
+      close();
+    } else {
+      // Settle based on position
+      if (_controller.value > 0.5) {
+        open();
+      } else {
+        close();
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Stack(
       children: [
+        /// Gesture detector for swipe-to-open
+        Positioned.fill(
+          child: GestureDetector(
+            behavior: HitTestBehavior.translucent,
+
+            /// Only allow swipe from left 24px when closed
+            onHorizontalDragStart: (details) {
+              if (!isOpen && details.globalPosition.dx > 24) return;
+              _onDragStart(details);
+            },
+            onHorizontalDragUpdate: (details) {
+              if (!isOpen && details.globalPosition.dx > 24) return;
+              _onDragUpdate(details);
+            },
+            onHorizontalDragEnd: (details) {
+              _onDragEnd(details);
+            },
+          ),
+        ),
+
         /// Main content (parallax)
         AnimatedBuilder(
           animation: _controller,
           builder: (context, child) {
-            final slide = 260 * _controller.value * 0.90; // 90% parallax
+            final slide = 260 * _controller.value * 0.90;
             return Transform.translate(
               offset: Offset(slide, 0),
               child: child,
@@ -83,7 +132,7 @@ class _CiantisDrawerContainerState extends State<CiantisDrawerContainer>
           child: const CiantisDrawer(),
         ),
 
-        /// Fade overlay when drawer is open
+        /// Fade overlay
         AnimatedBuilder(
           animation: _controller,
           builder: (context, child) {
