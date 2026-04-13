@@ -7,6 +7,7 @@ import '../universal/opportunity_engine.dart';
 import '../universal/nba_engine.dart';
 import '../universal/ambient_motion_engine.dart';
 import '../universal/ambient_sound_engine.dart';
+import '../universal/ambient_haptics_engine.dart';
 
 import 'developer_menu_screen.dart';
 import 'developer_log_overlay.dart';
@@ -37,7 +38,7 @@ import 'global/ciantis_drawer_container.dart';
 
 /// CiantisShell
 /// -------------
-/// Now includes adaptive luxury screen transitions + sound.
+/// Now includes adaptive luxury screen transitions + sound + haptics.
 class CiantisShell extends StatefulWidget {
   const CiantisShell({super.key});
 
@@ -67,6 +68,9 @@ class _CiantisShellState extends State<CiantisShell> {
     // 🔊 Screen transition sound
     AmbientSoundEngine.instance.screenTransition();
 
+    // 🤍 Soft luxury haptic confirmation
+    AmbientHapticsEngine.instance.softTap();
+
     setState(() => _index = newIndex);
   }
 
@@ -86,6 +90,9 @@ class _CiantisShellState extends State<CiantisShell> {
 
         // 🔊 Cognitive shift sound
         AmbientSoundEngine.instance.cognitiveShift();
+
+        // 🤍 Gentle pulse haptic
+        AmbientHapticsEngine.instance.pulse();
       },
 
       onClose: () {
@@ -99,6 +106,9 @@ class _CiantisShellState extends State<CiantisShell> {
 
         // 🔊 Cognitive shift sound
         AmbientSoundEngine.instance.cognitiveShift();
+
+        // 🤍 Gentle pulse haptic
+        AmbientHapticsEngine.instance.pulse();
       },
 
       onProgress: (value) {
