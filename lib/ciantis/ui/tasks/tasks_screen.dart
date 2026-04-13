@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
-import '../../universal/developer_logger.dart';
-import '../../universal/nba_engine.dart';
-import '../../universal/mode_engine.dart';
-import '../../universal/emotion_engine.dart';
+import '../../universal/ambient_motion_engine.dart';
+import 'widgets/task_capsule.dart';
 
 /// TasksScreen
 /// ------------
-/// Luxury task management surface.
-/// Calm, elegant, cognitive-aware.
+/// Luxury adaptive task surface with:
+/// - Staggered entry animations
+/// - Micro-interactions
+/// - Ambient scroll physics
+/// - Parallax
 class TasksScreen extends StatefulWidget {
   const TasksScreen({super.key});
 
@@ -15,204 +16,151 @@ class TasksScreen extends StatefulWidget {
   State<TasksScreen> createState() => _TasksScreenState();
 }
 
-class _TasksScreenState extends State<TasksScreen> {
-  String _suggestion = "";
-  String _mode = "";
-  String _emotion = "";
+class _TasksScreenState extends State<TasksScreen>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _entryController;
+
+  final List<String> _tasks = const [
+    "Review calendar for the day",
+    "Complete LPN coursework module",
+    "Prepare salon client notes",
+    "Check developer logs for Ciantis",
+    "Plan meals for the twins",
+    "Organize financial tasks",
+  ];
 
   @override
   void initState() {
     super.initState();
-    DeveloperLogger.log("TasksScreen initialized");
 
-    _update();
-    NbaEngine.instance.addListener(_update);
-    ModeEngine.instance.addListener(_update);
-    EmotionEngine.instance.addListener(_update);
-  }
+    final motion = AmbientMotionEngine.instance;
 
-  @override
-  void dispose() {
-    NbaEngine.instance.removeListener(_update);
-    ModeEngine.instance.removeListener(_update);
-    EmotionEngine.instance.removeListener(_update);
-    super.dispose();
-  }
+    _entryController = AnimationController(
+      vsync: this,
+      duration: motion.adaptiveDuration,
+    );
 
-  void _update() {
-    setState(() {
-      _suggestion = NbaEngine.instance.currentActionLabel;
-      _mode = ModeEngine.instance.activeMode;
-      _emotion = EmotionEngine.instance.primaryEmotion;
-    });
+    _entryController.forward();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFF0E0E0E),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 18),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              /// Luxury header
-              Text(
-                "Tasks",
-                style: const TextStyle(
-                  fontFamily: "AngleEstarossa",
-                  fontSize: 34,
-                  color: Colors.white,
-                ),
-              ),
+    return NotificationListener<ScrollNotification>(
+      onNotification: (scroll) {
+        setState(() {}); // triggers parallax
+        return false;
+      },
+      child: ListView.builder(
+        physics: _AmbientTaskScrollPhysics(),
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 30),
+        itemCount: _tasks.length + 1,
+        itemBuilder: (context, index) {
+          if (index == 0) {
+            return _buildHeader();
+          }
 
-              const SizedBox(height: 4),
+          final taskIndex = index - 1;
 
-              Text(
-                "Your priorities, refined.",
-                style: TextStyle(
-                  fontFamily: "Bourton",
-                  fontSize: 16,
-                  color: Colors.white.withOpacity(0.65),
-                ),
-              ),
-
-              const SizedBox(height: 28),
-
-              /// Cognitive-aware suggestion
-              _buildSuggestionTile(),
-
-              const SizedBox(height: 28),
-
-              /// Task list (static v1)
-              Expanded(
-                child: ListView(
-                  children: [
-                    _buildTaskCapsule(
-                      title: "Review LPN study notes",
-                      priority: "High",
-                    ),
-                    const SizedBox(height: 14),
-                    _buildTaskCapsule(
-                      title: "Prep salon kit for next client",
-                      priority: "Medium",
-                    ),
-                    const SizedBox(height: 14),
-                    _buildTaskCapsule(
-                      title: "Update Ciantis motion specs",
-                      priority: "Critical",
-                    ),
-                    const SizedBox(height: 14),
-                    _buildTaskCapsule(
-                      title: "Plan kids’ weekly schedule",
-                      priority: "Low",
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
+          return _buildAnimatedTask(taskIndex);
+        },
       ),
     );
   }
 
-  Widget _buildSuggestionTile() {
-    return Container(
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: const Color(0xFF1A1A1A),
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(
-          color: Colors.tealAccent.withOpacity(0.35),
-          width: 1.2,
-        ),
-      ),
-      child: Row(
-        children: [
-          Icon(Icons.auto_awesome, color: Colors.tealAccent.withOpacity(0.85)),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              _suggestion.isEmpty
-                  ? "Ciantis is analyzing your cognitive state…"
-                  : _suggestion,
-              style: const TextStyle(
-                fontSize: 16,
-                color: Colors.white,
-              ),
-            ),
-          ),
-        ],
+  // ------------------------------------------------------------
+  // HEADER
+  // ------------------------------------------------------------
+  Widget _buildHeader() {
+    final motion = AmbientMotionEngine.instance;
+
+    final fade = CurvedAnimation(
+      parent: _entryController,
+      curve: Interval(0.0, 0.3, curve: motion.adaptiveCurve),
+    );
+
+    final slide = Tween<Offset>(
+      begin: const Offset(0, 0.06),
+      end: Offset.zero,
+    ).animate(
+      CurvedAnimation(
+        parent: _entryController,
+        curve: Interval(0.0, 0.3, curve: motion.adaptiveCurve),
       ),
     );
-  }
 
-  Widget _buildTaskCapsule({
-    required String title,
-    required String priority,
-  }) {
-    final color = _priorityColor(priority);
-
-    return Container(
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.04),
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(
-          color: Colors.white.withOpacity(0.08),
-          width: 1.2,
-        ),
-      ),
-      child: Row(
-        children: [
-          /// Priority ribbon
-          Container(
-            width: 6,
-            height: 42,
-            decoration: BoxDecoration(
-              color: color,
-              borderRadius: BorderRadius.circular(4),
-            ),
-          ),
-
-          const SizedBox(width: 14),
-
-          /// Task title
-          Expanded(
-            child: Text(
-              title,
-              style: const TextStyle(
-                fontSize: 16,
-                color: Colors.white,
-              ),
-            ),
-          ),
-
-          /// Priority label
-          Text(
-            priority,
+    return FadeTransition(
+      opacity: fade,
+      child: SlideTransition(
+        position: slide,
+        child: const Padding(
+          padding: EdgeInsets.only(bottom: 20),
+          child: Text(
+            "Your Tasks",
             style: TextStyle(
-              fontSize: 12,
-              color: color.withOpacity(0.85),
+              fontSize: 22,
+              color: Colors.white,
             ),
           ),
-        ],
+        ),
       ),
     );
   }
 
-  Color _priorityColor(String p) {
-    switch (p) {
-      case "Critical":
-        return Colors.redAccent;
-      case "High":
-        return Colors.orangeAccent;
-      case "Medium":
-        return Colors.yellowAccent;
-      default:
-        return Colors.greenAccent;
-    }
+  // ------------------------------------------------------------
+  // TASK ENTRY ANIMATION
+  // ------------------------------------------------------------
+  Widget _buildAnimatedTask(int index) {
+    final motion = AmbientMotionEngine.instance;
+
+    final animation = CurvedAnimation(
+      parent: _entryController,
+      curve: Interval(
+        (index * 0.12).clamp(0.0, 1.0),
+        1.0,
+        curve: motion.adaptiveCurve,
+      ),
+    );
+
+    return FadeTransition(
+      opacity: animation,
+      child: SlideTransition(
+        position: Tween<Offset>(
+          begin: const Offset(0, 0.04),
+          end: Offset.zero,
+        ).animate(animation),
+        child: TaskCapsule(title: _tasks[index]),
+      ),
+    );
+  }
+}
+
+/// Ambient scroll physics for tasks
+/// ---------------------------------
+class _AmbientTaskScrollPhysics extends ScrollPhysics {
+  const _AmbientTaskScrollPhysics({ScrollPhysics? parent}) : super(parent: parent);
+
+  @override
+  _AmbientTaskScrollPhysics applyTo(ScrollPhysics? ancestor) {
+    return _AmbientTaskScrollPhysics(parent: buildParent(ancestor));
+  }
+
+  @override
+  double get minFlingVelocity => 20.0;
+
+  @override
+  double get maxFlingVelocity => 2600.0;
+
+  @override
+  double get dragStartDistanceMotionThreshold => 3.0;
+
+  @override
+  Simulation? createBallisticSimulation(
+      ScrollMetrics position, double velocity) {
+    final motion = AmbientMotionEngine.instance;
+
+    final adjustedVelocity = velocity *
+        (motion.adaptiveDuration.inMilliseconds / 420.0);
+
+    return super.createBallisticSimulation(position, adjustedVelocity);
   }
 }
