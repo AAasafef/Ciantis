@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../universal/developer_logger.dart';
 import 'developer_menu_screen.dart';
 import 'developer_log_overlay.dart';
+import 'developer_status_bar.dart';
 
 /// CiantisShell
 /// -------------
@@ -10,7 +11,8 @@ import 'developer_log_overlay.dart';
 /// - Bottom navigation
 /// - Screen switching
 /// - Developer menu access
-/// - Developer log overlay (live console)
+/// - Developer log overlay
+/// - Developer status bar (HUD)
 class CiantisShell extends StatefulWidget {
   const CiantisShell({super.key});
 
@@ -65,7 +67,15 @@ class _CiantisShellState extends State<CiantisShell> {
               ),
             ],
           ),
-          body: _screens[_index],
+          body: Column(
+            children: [
+              /// Developer HUD (real‑time system status)
+              const DeveloperStatusBar(),
+
+              /// Main screen content
+              Expanded(child: _screens[_index]),
+            ],
+          ),
           bottomNavigationBar: BottomNavigationBar(
             backgroundColor: Colors.black,
             selectedItemColor: Colors.tealAccent,
