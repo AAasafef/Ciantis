@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../universal/ciantis_context.dart';
 import '../universal/developer_logger.dart';
+import 'developer_tick_pulse.dart';
 
 /// DeveloperStatusBar
 /// -------------------
@@ -10,7 +11,7 @@ import '../universal/developer_logger.dart';
 /// - Stress
 /// - Task Load
 /// - Calendar Load
-/// - Last Tick
+/// - Tick Pulse (heartbeat)
 ///
 /// Automatically rebuilds when context updates.
 class DeveloperStatusBar extends StatefulWidget {
@@ -49,13 +50,19 @@ class _DeveloperStatusBarState extends State<DeveloperStatusBar> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              // Left side: Mode
-              Text(
-                "Mode: ${ctx.mode}",
-                style: const TextStyle(
-                  color: Colors.tealAccent,
-                  fontSize: 11,
-                ),
+              // Left side: Mode + Pulse
+              Row(
+                children: [
+                  const DeveloperTickPulse(),
+                  const SizedBox(width: 8),
+                  Text(
+                    "Mode: ${ctx.mode}",
+                    style: const TextStyle(
+                      color: Colors.tealAccent,
+                      fontSize: 11,
+                    ),
+                  ),
+                ],
               ),
 
               // Right side: Metrics
