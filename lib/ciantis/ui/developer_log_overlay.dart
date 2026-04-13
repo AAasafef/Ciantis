@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../universal/ambient_motion_engine.dart';
 import '../universal/developer_logger.dart';
 import '../universal/ambient_sound_engine.dart';
+import '../universal/ambient_haptics_engine.dart';
 
 /// DeveloperLogOverlay
 /// --------------------
@@ -9,7 +10,7 @@ import '../universal/ambient_sound_engine.dart';
 /// - Fade + slide entry
 /// - Pulse on new logs
 /// - Parallax scroll
-/// - Ambient motion + sound identity
+/// - Ambient motion + sound + haptics identity
 class DeveloperLogOverlay extends StatefulWidget {
   const DeveloperLogOverlay({super.key});
 
@@ -64,6 +65,9 @@ class _DeveloperLogOverlayState extends State<DeveloperLogOverlay>
   void _onNewLog() {
     // 🔊 Play subtle log pulse sound
     AmbientSoundEngine.instance.logPulse();
+
+    // 🤍 Soft luxury haptic pulse
+    AmbientHapticsEngine.instance.pulse();
 
     // Trigger pulse animation
     _entryController.forward(from: 0.0);
