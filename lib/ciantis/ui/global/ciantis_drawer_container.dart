@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'ciantis_drawer.dart';
 import '../../universal/ambient_motion_engine.dart';
 import '../../universal/ambient_sound_engine.dart';
+import '../../universal/ambient_haptics_engine.dart';
 
 /// CiantisDrawerContainer
 /// -----------------------
@@ -16,7 +17,7 @@ import '../../universal/ambient_sound_engine.dart';
 /// - Depth shadow + ambient occlusion
 /// - Drawer state callbacks (AI-aware)
 /// - Ambient Motion Engine integration
-/// - Ambient Sound hooks for open/close
+/// - Ambient Sound + Haptics hooks
 class CiantisDrawerContainer extends StatefulWidget {
   final Widget child;
 
@@ -81,8 +82,11 @@ class _CiantisDrawerContainerState extends State<CiantisDrawerContainer>
   void open() {
     _controller.duration = AmbientMotionEngine.instance.adaptiveDuration;
 
-    // 🔊 Play drawer open sound
+    // 🔊 Sound
     AmbientSoundEngine.instance.drawerOpen();
+
+    // 🤍 Haptic feedback
+    AmbientHapticsEngine.instance.mediumTap();
 
     _controller.forward();
   }
@@ -90,8 +94,11 @@ class _CiantisDrawerContainerState extends State<CiantisDrawerContainer>
   void close() {
     _controller.duration = AmbientMotionEngine.instance.adaptiveDuration;
 
-    // 🔊 Play drawer close sound
+    // 🔊 Sound
     AmbientSoundEngine.instance.drawerClose();
+
+    // 🤍 Haptic feedback
+    AmbientHapticsEngine.instance.mediumTap();
 
     _controller.reverse();
   }
