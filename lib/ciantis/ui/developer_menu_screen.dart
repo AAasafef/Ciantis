@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../universal/developer_logger.dart';
 import 'ai_explainability_screen.dart';
 import 'developer_quick_actions_screen.dart';
 import 'developer_diagnostics_screen.dart';
@@ -6,8 +7,8 @@ import 'developer_logs_screen.dart';
 
 /// DeveloperMenuScreen
 /// --------------------
-/// Gives access to internal developer tools:
-/// - AI Explainability Panel
+/// Central hub for all developer tools:
+/// - AI Explainability
 /// - Quick Actions
 /// - Diagnostics
 /// - Logs
@@ -16,6 +17,8 @@ class DeveloperMenuScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    DeveloperLogger.log("Opened Developer Menu Screen");
+
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
@@ -27,25 +30,25 @@ class DeveloperMenuScreen extends StatelessWidget {
         children: [
           _item(
             context,
-            title: "AI Explainability",
-            icon: Icons.psychology_alt,
+            label: "AI Explainability",
+            icon: Icons.psychology,
             screen: const AiExplainabilityScreen(),
           ),
           _item(
             context,
-            title: "Quick Actions",
+            label: "Quick Actions",
             icon: Icons.flash_on,
             screen: const DeveloperQuickActionsScreen(),
           ),
           _item(
             context,
-            title: "Diagnostics",
+            label: "Diagnostics",
             icon: Icons.monitor_heart,
             screen: const DeveloperDiagnosticsScreen(),
           ),
           _item(
             context,
-            title: "Logs",
+            label: "Logs",
             icon: Icons.list_alt,
             screen: const DeveloperLogsScreen(),
           ),
@@ -56,7 +59,7 @@ class DeveloperMenuScreen extends StatelessWidget {
 
   Widget _item(
     BuildContext context, {
-    required String title,
+    required String label,
     required IconData icon,
     required Widget screen,
   }) {
@@ -69,7 +72,7 @@ class DeveloperMenuScreen extends StatelessWidget {
       child: ListTile(
         leading: Icon(icon, color: Colors.tealAccent),
         title: Text(
-          title,
+          label,
           style: const TextStyle(
             color: Colors.white70,
             fontSize: 16,
@@ -77,6 +80,7 @@ class DeveloperMenuScreen extends StatelessWidget {
         ),
         trailing: const Icon(Icons.chevron_right, color: Colors.white38),
         onTap: () {
+          DeveloperLogger.log("Developer Menu → $label");
           Navigator.push(
             context,
             MaterialPageRoute(builder: (_) => screen),
