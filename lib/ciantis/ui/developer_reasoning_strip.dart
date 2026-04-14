@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
-import '../universal/ai_state.dart';
+import '../universal/ambient_motion_engine.dart';
+import '../universal/ambient_sound_engine.dart';
+import '../universal/ambient_haptics_engine.dart';
 import '../universal/developer_logger.dart';
 
 /// DeveloperReasoningStrip
 /// ------------------------
-/// A thin ribbon that displays the most recent AI reasoning line.
-/// This gives developers a real-time peek into the AI's thought process.
-///
-/// It automatically updates whenever any reasoning string changes.
+/// Displays Ciantis' internal reasoning nodes with:
+/// - Smooth micro-motion
+/// - Soft sound + haptics on interactions
+/// - Cognitive pulse animations
 class DeveloperReasoningStrip extends StatefulWidget {
   const DeveloperReasoningStrip({super.key});
 
@@ -16,65 +18,96 @@ class DeveloperReasoningStrip extends StatefulWidget {
       _DeveloperReasoningStripState();
 }
 
-class _DeveloperReasoningStripState extends State<DeveloperReasoningStrip> {
-  String _latest = "";
+class _DeveloperReasoningStripState extends State<DeveloperReasoningStrip>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _pulseController;
+
+  final List<String> _nodes = [
+    "Intent",
+    "Context",
+    "Mode",
+    "Emotion",
+    "Opportunity",
+    "NBA",
+    "Prediction",
+  ];
 
   @override
   void initState() {
     super.initState();
-    DeveloperLogger.log("DeveloperReasoningStrip initialized");
 
-    // Listen for changes in AI State
-    AiState.instance.addListener(_update);
-    _update();
+    final motion = AmbientMotionEngine.instance;
+
+    _pulseController = AnimationController(
+      vsync: this,
+      duration: motion.adaptiveDuration,
+    );
   }
 
-  void _update() {
-    final ai = AiState.instance;
+  void _onNodeTap(String node) {
+    DeveloperLogger.log("Reasoning Strip → $node tapped");
 
-    // Pick the most recently updated reasoning string
-    final candidates = [
-      ai.modeReason,
-      ai.nextBestActionReason,
-      ai.dailyBriefingReason,
-      ai.summaryReason,
-    ].where((e) => e.isNotEmpty).toList();
+    // 🔊 Soft UI tap sound
+    AmbientSoundEngine.instance.quickAction();
 
-    if (candidates.isNotEmpty) {
-      setState(() => _latest = candidates.last);
-    }
-  }
+    // 🤍 Soft luxury haptic tap
+    AmbientHapticsEngine.instance.softTap();
 
-  @override
-  void dispose() {
-    AiState.instance.removeListener(_update);
-    super.dispose();
+    // Pulse animation
+    _pulseController.forward(from: 0.0);
   }
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 3),
-      decoration: BoxDecoration(
-        color: Colors.black.withOpacity(0.45),
-        border: const Border(
-          bottom: BorderSide(
-            color: Colors.tealAccent,
-            width: 0.35,
-          ),
-        ),
-      ),
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        reverse: true,
-        child: Text(
-          _latest.isEmpty ? "AI Reasoning: (waiting…)" : _latest,
-          style: const TextStyle(
-            color: Colors.white60,
-            fontSize: 10.5,
-            height: 1.2,
-          ),
+    final motion = AmbientMotionEngine.instance;
+
+    return SizedBox(
+      height: 54,
+      child: AnimatedBuilder(
+        animation: _pulseController,
+        builder: (context, child) {
+          final scale = Tween<double>(begin: 1.0, end: 1.03)
+              .chain(CurveTween(curve: motion.adaptiveCurve))
+              .evaluate(_pulseController);
+
+          return Transform.scale(
+            scale: scale,
+            child: child,
+          );
+        },
+        child: ListView.separated(
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          itemCount: _nodes.length,
+          separatorBuilder: (_, __) => const SizedBox(width: 12),
+          itemBuilder: (context, index) {
+            final node = _nodes[index];
+
+            return GestureDetector(
+              onTap: () => _onNodeTap(node),
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.06),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: Colors.white.withOpacity(0.10),
+                    width: 1.2,
+                  ),
+                ),
+                child: Center(
+                  child: Text(
+                    node,
+                    style: const TextStyle(
+                      color: Colors.white70,
+                      fontSize: 14,
+                    ),
+                  ),
+                ),
+              ),
+            );
+          },
         ),
       ),
     );
