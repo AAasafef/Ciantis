@@ -1,19 +1,15 @@
 import 'package:flutter/material.dart';
-import '../universal/ciantis_context.dart';
+import '../universal/ambient_motion_engine.dart';
+import '../universal/ambient_sound_engine.dart';
+import '../universal/ambient_haptics_engine.dart';
 import '../universal/developer_logger.dart';
-import 'developer_tick_pulse.dart';
 
 /// DeveloperStatusBar
 /// -------------------
-/// A thin, always-visible HUD showing real-time system state:
-/// - Mode
-/// - Energy
-/// - Stress
-/// - Task Load
-/// - Calendar Load
-/// - Tick Pulse (heartbeat)
-///
-/// Automatically rebuilds when context updates.
+/// Displays live system indicators with:
+/// - Smooth micro-motion
+/// - Soft sound + haptics on interactions
+/// - Developer-friendly cognitive feedback
 class DeveloperStatusBar extends StatefulWidget {
   const DeveloperStatusBar({super.key});
 
@@ -21,62 +17,90 @@ class DeveloperStatusBar extends StatefulWidget {
   State<DeveloperStatusBar> createState() => _DeveloperStatusBarState();
 }
 
-class _DeveloperStatusBarState extends State<DeveloperStatusBar> {
+class _DeveloperStatusBarState extends State<DeveloperStatusBar>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _pulseController;
+
   @override
   void initState() {
     super.initState();
-    DeveloperLogger.log("DeveloperStatusBar initialized");
+
+    final motion = AmbientMotionEngine.instance;
+
+    _pulseController = AnimationController(
+      vsync: this,
+      duration: motion.adaptiveDuration,
+    );
+  }
+
+  void _onTap(String label) {
+    DeveloperLogger.log("Status Bar → $label tapped");
+
+    // 🔊 Soft UI tap sound
+    AmbientSoundEngine.instance.quickAction();
+
+    // 🤍 Soft luxury haptic tap
+    AmbientHapticsEngine.instance.softTap();
+
+    // Pulse animation
+    _pulseController.forward(from: 0.0);
   }
 
   @override
   Widget build(BuildContext context) {
-    final ctx = CiantisContext.instance;
+    final motion = AmbientMotionEngine.instance;
 
     return AnimatedBuilder(
-      animation: ctx,
-      builder: (context, _) {
-        return Container(
-          width: double.infinity,
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-          decoration: BoxDecoration(
-            color: Colors.black.withOpacity(0.55),
-            border: const Border(
-              bottom: BorderSide(
-                color: Colors.tealAccent,
-                width: 0.4,
-              ),
-            ),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              // Left side: Mode + Pulse
-              Row(
-                children: [
-                  const DeveloperTickPulse(),
-                  const SizedBox(width: 8),
-                  Text(
-                    "Mode: ${ctx.mode}",
-                    style: const TextStyle(
-                      color: Colors.tealAccent,
-                      fontSize: 11,
-                    ),
-                  ),
-                ],
-              ),
+      animation: _pulseController,
+      builder: (context, child) {
+        final scale = Tween<double>(begin: 1.0, end: 1.03)
+            .chain(CurveTween(curve: motion.adaptiveCurve))
+            .evaluate(_pulseController);
 
-              // Right side: Metrics
-              Text(
-                "E:${ctx.energy}  S:${ctx.stress}  T:${ctx.taskLoad}  C:${ctx.calendarLoad}",
-                style: const TextStyle(
-                  color: Colors.white70,
-                  fontSize: 11,
-                ),
-              ),
-            ],
-          ),
+        return Transform.scale(
+          scale: scale,
+          child: child,
         );
       },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.05),
+          border: Border(
+            bottom: BorderSide(
+              color: Colors.white.withOpacity(0.10),
+              width: 1.2,
+            ),
+          ),
+        ),
+        child: Row(
+          children: [
+            _statusItem("CPU", Icons.memory),
+            const SizedBox(width: 18),
+            _statusItem("Load", Icons.speed),
+            const SizedBox(width: 18),
+            _statusItem("Mode", Icons.bubble_chart),
+            const SizedBox(width: 18),
+            _statusItem("Emotion", Icons.favorite),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _statusItem(String label, IconData icon) {
+    return GestureDetector(
+      onTap: () => _onTap(label),
+      child: Row(
+        children: [
+          Icon(icon, color: Colors.white70, size: 18),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: const TextStyle(color: Colors.white70, fontSize: 13),
+          ),
+        ],
+      ),
     );
   }
 }
