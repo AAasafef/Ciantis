@@ -1,16 +1,15 @@
 import 'package:flutter/material.dart';
-import '../universal/ciantis_context.dart';
+import '../universal/ambient_motion_engine.dart';
+import '../universal/ambient_sound_engine.dart';
+import '../universal/ambient_haptics_engine.dart';
 import '../universal/developer_logger.dart';
 
 /// DeveloperOpportunityPanel
 /// --------------------------
-/// Shows the current opportunity signal:
-/// - Label
-/// - Score
-/// - Confidence
-///
-/// This gives developers a real-time view of what Ciantis believes
-/// is the best opportunity for the user at this moment.
+/// Shows Ciantis' detected opportunities with:
+/// - Smooth micro-motion
+/// - Soft sound + haptics on interactions
+/// - Opportunity pulse animations
 class DeveloperOpportunityPanel extends StatefulWidget {
   const DeveloperOpportunityPanel({super.key});
 
@@ -19,70 +18,96 @@ class DeveloperOpportunityPanel extends StatefulWidget {
       _DeveloperOpportunityPanelState();
 }
 
-class _DeveloperOpportunityPanelState extends State<DeveloperOpportunityPanel> {
-  String _label = "None";
-  double _score = 0.0;
-  double _confidence = 0.0;
+class _DeveloperOpportunityPanelState extends State<DeveloperOpportunityPanel>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _pulseController;
+
+  final List<String> _opportunities = [
+    "Navigation",
+    "Task Completion",
+    "Focus Window",
+    "Energy Match",
+    "Calendar Sync",
+    "Reflection",
+  ];
 
   @override
   void initState() {
     super.initState();
-    DeveloperLogger.log("DeveloperOpportunityPanel initialized");
 
-    CiantisContext.instance.addListener(_update);
-    _update();
+    final motion = AmbientMotionEngine.instance;
+
+    _pulseController = AnimationController(
+      vsync: this,
+      duration: motion.adaptiveDuration,
+    );
   }
 
-  void _update() {
-    final ctx = CiantisContext.instance;
+  void _onOpportunityTap(String opp) {
+    DeveloperLogger.log("Opportunity Panel → $opp tapped");
 
-    setState(() {
-      _label = ctx.opportunityLabel;
-      _score = ctx.opportunityScore;
-      _confidence = ctx.opportunityConfidence;
-    });
+    // 🔊 Soft UI tap sound
+    AmbientSoundEngine.instance.quickAction();
+
+    // 🤍 Soft luxury haptic tap
+    AmbientHapticsEngine.instance.softTap();
+
+    // Pulse animation
+    _pulseController.forward(from: 0.0);
   }
-
-  @override
-  void dispose() {
-    CiantisContext.instance.removeListener(_update);
-    super.dispose();
-  }
-
-  String _fmt(double v) => v.toStringAsFixed(2);
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-      decoration: BoxDecoration(
-        color: Colors.black.withOpacity(0.40),
-        border: const Border(
-          bottom: BorderSide(
-            color: Colors.tealAccent,
-            width: 0.35,
-          ),
+    final motion = AmbientMotionEngine.instance;
+
+    return SizedBox(
+      height: 54,
+      child: AnimatedBuilder(
+        animation: _pulseController,
+        builder: (context, child) {
+          final scale = Tween<double>(begin: 1.0, end: 1.03)
+              .chain(CurveTween(curve: motion.adaptiveCurve))
+              .evaluate(_pulseController);
+
+          return Transform.scale(
+            scale: scale,
+            child: child,
+          );
+        },
+        child: ListView.separated(
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          itemCount: _opportunities.length,
+          separatorBuilder: (_, __) => const SizedBox(width: 12),
+          itemBuilder: (context, index) {
+            final opp = _opportunities[index];
+
+            return GestureDetector(
+              onTap: () => _onOpportunityTap(opp),
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.06),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: Colors.white.withOpacity(0.10),
+                    width: 1.2,
+                  ),
+                ),
+                child: Center(
+                  child: Text(
+                    opp,
+                    style: const TextStyle(
+                      color: Colors.white70,
+                      fontSize: 13,
+                    ),
+                  ),
+                ),
+              ),
+            );
+          },
         ),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            "Opportunity: $_label",
-            style: const TextStyle(
-              color: Colors.tealAccent,
-              fontSize: 10.5,
-            ),
-          ),
-          Text(
-            "Score: ${_fmt(_score)}  Conf: ${_fmt(_confidence)}",
-            style: const TextStyle(
-              color: Colors.white60,
-              fontSize: 10.5,
-            ),
-          ),
-        ],
       ),
     );
   }
