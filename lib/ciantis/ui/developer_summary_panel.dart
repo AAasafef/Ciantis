@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
-import '../universal/ai_state.dart';
+import '../universal/ambient_motion_engine.dart';
+import '../universal/ambient_sound_engine.dart';
+import '../universal/ambient_haptics_engine.dart';
 import '../universal/developer_logger.dart';
 
 /// DeveloperSummaryPanel
 /// ----------------------
-/// Shows the current Summary Engine output:
-/// - Summary line
-/// - Category
-/// - Confidence
-///
-/// This gives developers a real-time view of Ciantis’ high-level synthesis.
+/// Shows a high-level summary of Ciantis' cognitive state with:
+/// - Smooth micro-motion
+/// - Soft sound + haptics on interactions
+/// - Summary pulse animations
 class DeveloperSummaryPanel extends StatefulWidget {
   const DeveloperSummaryPanel({super.key});
 
@@ -17,80 +17,108 @@ class DeveloperSummaryPanel extends StatefulWidget {
   State<DeveloperSummaryPanel> createState() => _DeveloperSummaryPanelState();
 }
 
-class _DeveloperSummaryPanelState extends State<DeveloperSummaryPanel> {
-  String _summary = "";
-  String _category = "General";
-  double _confidence = 0.0;
+class _DeveloperSummaryPanelState extends State<DeveloperSummaryPanel>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _pulseController;
+
+  final List<Map<String, dynamic>> _summaryItems = [
+    {"label": "Mode: Reflective", "icon": Icons.bubble_chart},
+    {"label": "Emotion: Calm", "icon": Icons.favorite},
+    {"label": "Load: Moderate", "icon": Icons.speed},
+    {"label": "Opportunity: Navigation", "icon": Icons.lightbulb},
+    {"label": "NBA: Review Tasks", "icon": Icons.auto_awesome},
+  ];
 
   @override
   void initState() {
     super.initState();
-    DeveloperLogger.log("DeveloperSummaryPanel initialized");
 
-    AiState.instance.addListener(_update);
-    _update();
+    final motion = AmbientMotionEngine.instance;
+
+    _pulseController = AnimationController(
+      vsync: this,
+      duration: motion.adaptiveDuration,
+    );
   }
 
-  void _update() {
-    final ai = AiState.instance;
+  void _onSummaryTap(String label) {
+    DeveloperLogger.log("Summary Panel → $label tapped");
 
-    setState(() {
-      _summary = ai.summaryText;
-      _category = ai.summaryCategory;
-      _confidence = ai.summaryConfidence;
-    });
+    // 🔊 Soft UI tap sound
+    AmbientSoundEngine.instance.quickAction();
+
+    // 🤍 Soft luxury haptic tap
+    AmbientHapticsEngine.instance.softTap();
+
+    // Pulse animation
+    _pulseController.forward(from: 0.0);
   }
-
-  @override
-  void dispose() {
-    AiState.instance.removeListener(_update);
-    super.dispose();
-  }
-
-  String _fmt(double v) => v.toStringAsFixed(2);
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-      decoration: BoxDecoration(
-        color: Colors.black.withOpacity(0.40),
-        border: const Border(
-          bottom: BorderSide(
-            color: Colors.tealAccent,
-            width: 0.35,
+    final motion = AmbientMotionEngine.instance;
+
+    return AnimatedBuilder(
+      animation: _pulseController,
+      builder: (context, child) {
+        final scale = Tween<double>(begin: 1.0, end: 1.03)
+            .chain(CurveTween(curve: motion.adaptiveCurve))
+            .evaluate(_pulseController);
+
+        return Transform.scale(
+          scale: scale,
+          child: child,
+        );
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.05),
+          border: Border(
+            bottom: BorderSide(
+              color: Colors.white.withOpacity(0.10),
+              width: 1.2,
+            ),
           ),
         ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            "Summary (${_category}):",
-            style: const TextStyle(
-              color: Colors.tealAccent,
-              fontSize: 10.5,
-            ),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            _summary.isEmpty ? "(no summary available)" : _summary,
-            style: const TextStyle(
-              color: Colors.white60,
-              fontSize: 10,
-              height: 1.2,
-            ),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            "Confidence: ${_fmt(_confidence)}",
-            style: const TextStyle(
-              color: Colors.white54,
-              fontSize: 10,
-            ),
-          ),
-        ],
+        child: Column(
+          children: _summaryItems.map((item) {
+            final label = item["label"] as String;
+            final icon = item["icon"] as IconData;
+
+            return GestureDetector(
+              onTap: () => _onSummaryTap(label),
+              child: Container(
+                margin: const EdgeInsets.only(bottom: 10),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 10,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.06),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: Colors.white.withOpacity(0.10),
+                    width: 1.2,
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Icon(icon, color: Colors.white70, size: 20),
+                    const SizedBox(width: 12),
+                    Text(
+                      label,
+                      style: const TextStyle(
+                        color: Colors.white70,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }).toList(),
+        ),
       ),
     );
   }
