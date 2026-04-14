@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
-import '../universal/ai_state.dart';
+import '../universal/ambient_motion_engine.dart';
+import '../universal/ambient_sound_engine.dart';
+import '../universal/ambient_haptics_engine.dart';
 import '../universal/developer_logger.dart';
 
 /// DeveloperDailyBriefingPanel
 /// ----------------------------
-/// Shows the current Daily Briefing summary:
-/// - Briefing line
-/// - Emotional tone
-/// - Confidence
-///
-/// This gives developers a real-time view of Ciantis’ narrative synthesis.
+/// Shows Ciantis' daily cognitive briefing with:
+/// - Smooth micro-motion
+/// - Soft sound + haptics on interactions
+/// - Briefing pulse animations
 class DeveloperDailyBriefingPanel extends StatefulWidget {
   const DeveloperDailyBriefingPanel({super.key});
 
@@ -19,80 +19,110 @@ class DeveloperDailyBriefingPanel extends StatefulWidget {
 }
 
 class _DeveloperDailyBriefingPanelState
-    extends State<DeveloperDailyBriefingPanel> {
-  String _briefing = "";
-  String _tone = "Neutral";
-  double _confidence = 0.0;
+    extends State<DeveloperDailyBriefingPanel>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _pulseController;
+
+  final List<Map<String, dynamic>> _briefingItems = [
+    {"label": "Morning Mode: Reflective", "icon": Icons.bubble_chart},
+    {"label": "Emotional Baseline: Calm", "icon": Icons.favorite},
+    {"label": "Cognitive Load Forecast: Light → Moderate", "icon": Icons.speed},
+    {"label": "Primary Opportunity: Task Alignment", "icon": Icons.lightbulb},
+    {"label": "Recommended Flow: Tasks → Calendar → Review", "icon": Icons.auto_awesome},
+  ];
 
   @override
   void initState() {
     super.initState();
-    DeveloperLogger.log("DeveloperDailyBriefingPanel initialized");
 
-    AiState.instance.addListener(_update);
-    _update();
+    final motion = AmbientMotionEngine.instance;
+
+    _pulseController = AnimationController(
+      vsync: this,
+      duration: motion.adaptiveDuration,
+    );
   }
 
-  void _update() {
-    final ai = AiState.instance;
+  void _onBriefingTap(String label) {
+    DeveloperLogger.log("Daily Briefing Panel → $label tapped");
 
-    setState(() {
-      _briefing = ai.dailyBriefingSummary;
-      _tone = ai.dailyBriefingTone;
-      _confidence = ai.dailyBriefingConfidence;
-    });
+    // 🔊 Soft UI tap sound
+    AmbientSoundEngine.instance.quickAction();
+
+    // 🤍 Soft luxury haptic tap
+    AmbientHapticsEngine.instance.softTap();
+
+    // Pulse animation
+    _pulseController.forward(from: 0.0);
   }
-
-  @override
-  void dispose() {
-    AiState.instance.removeListener(_update);
-    super.dispose();
-  }
-
-  String _fmt(double v) => v.toStringAsFixed(2);
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-      decoration: BoxDecoration(
-        color: Colors.black.withOpacity(0.40),
-        border: const Border(
-          bottom: BorderSide(
-            color: Colors.tealAccent,
-            width: 0.35,
+    final motion = AmbientMotionEngine.instance;
+
+    return AnimatedBuilder(
+      animation: _pulseController,
+      builder: (context, child) {
+        final scale = Tween<double>(begin: 1.0, end: 1.03)
+            .chain(CurveTween(curve: motion.adaptiveCurve))
+            .evaluate(_pulseController);
+
+        return Transform.scale(
+          scale: scale,
+          child: child,
+        );
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.05),
+          border: Border(
+            bottom: BorderSide(
+              color: Colors.white.withOpacity(0.10),
+              width: 1.2,
+            ),
           ),
         ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            "Daily Briefing:",
-            style: const TextStyle(
-              color: Colors.tealAccent,
-              fontSize: 10.5,
-            ),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            _briefing.isEmpty ? "(no briefing available)" : _briefing,
-            style: const TextStyle(
-              color: Colors.white60,
-              fontSize: 10,
-              height: 1.2,
-            ),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            "Tone: $_tone   Confidence: ${_fmt(_confidence)}",
-            style: const TextStyle(
-              color: Colors.white54,
-              fontSize: 10,
-            ),
-          ),
-        ],
+        child: Column(
+          children: _briefingItems.map((item) {
+            final label = item["label"] as String;
+            final icon = item["icon"] as IconData;
+
+            return GestureDetector(
+              onTap: () => _onBriefingTap(label),
+              child: Container(
+                margin: const EdgeInsets.only(bottom: 10),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 10,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.06),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: Colors.white.withOpacity(0.10),
+                    width: 1.2,
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Icon(icon, color: Colors.white70, size: 20),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        label,
+                        style: const TextStyle(
+                          color: Colors.white70,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }).toList(),
+        ),
       ),
     );
   }
