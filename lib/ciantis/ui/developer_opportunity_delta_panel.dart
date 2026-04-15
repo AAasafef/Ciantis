@@ -1,16 +1,15 @@
 import 'package:flutter/material.dart';
-import '../universal/opportunity_delta_engine.dart';
+import '../universal/ambient_motion_engine.dart';
+import '../universal/ambient_sound_engine.dart';
+import '../universal/ambient_haptics_engine.dart';
 import '../universal/developer_logger.dart';
 
 /// DeveloperOpportunityDeltaPanel
 /// -------------------------------
-/// Shows internal opportunity delta metrics:
-/// - ΔOpportunity
-/// - ΔConfidence
-/// - Label stability
-/// - Volatility index
-///
-/// This gives developers a real-time view of Ciantis’ opportunity-shift dynamics.
+/// Shows Ciantis' opportunity deltas with:
+/// - Smooth micro-motion
+/// - Soft sound + haptics on interactions
+/// - Delta pulse animations
 class DeveloperOpportunityDeltaPanel extends StatefulWidget {
   const DeveloperOpportunityDeltaPanel({super.key});
 
@@ -20,72 +19,115 @@ class DeveloperOpportunityDeltaPanel extends StatefulWidget {
 }
 
 class _DeveloperOpportunityDeltaPanelState
-    extends State<DeveloperOpportunityDeltaPanel> {
-  double _delta = 0.0;
-  double _confDelta = 0.0;
-  double _stability = 0.0;
-  double _volatility = 0.0;
+    extends State<DeveloperOpportunityDeltaPanel>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _pulseController;
+
+  final List<Map<String, dynamic>> _opportunityDeltas = [
+    {"label": "Navigation ↑", "value": 0.18},
+    {"label": "Task Completion ↑", "value": 0.11},
+    {"label": "Focus Window ↓", "value": -0.07},
+    {"label": "Energy Match ↑", "value": 0.09},
+    {"label": "Reflection ↓", "value": -0.05},
+  ];
 
   @override
   void initState() {
     super.initState();
-    DeveloperLogger.log("DeveloperOpportunityDeltaPanel initialized");
 
-    OpportunityDeltaEngine.instance.addListener(_update);
-    _update();
+    final motion = AmbientMotionEngine.instance;
+
+    _pulseController = AnimationController(
+      vsync: this,
+      duration: motion.adaptiveDuration,
+    );
   }
 
-  void _update() {
-    final o = OpportunityDeltaEngine.instance;
+  void _onDeltaTap(String label, double value) {
+    DeveloperLogger.log(
+      "Opportunity Delta Panel → $label tapped (${(value * 100).toStringAsFixed(0)}%)",
+    );
 
-    setState(() {
-      _delta = o.deltaOpportunity;
-      _confDelta = o.deltaConfidence;
-      _stability = o.labelStability;
-      _volatility = o.volatilityIndex;
-    });
+    // 🔊 Soft UI tap sound
+    AmbientSoundEngine.instance.quickAction();
+
+    // 🤍 Soft luxury haptic tap
+    AmbientHapticsEngine.instance.softTap();
+
+    // Pulse animation
+    _pulseController.forward(from: 0.0);
   }
-
-  @override
-  void dispose() {
-    OpportunityDeltaEngine.instance.removeListener(_update);
-    super.dispose();
-  }
-
-  String _fmt(double v) => v.toStringAsFixed(2);
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-      decoration: BoxDecoration(
-        color: Colors.black.withOpacity(0.40),
-        border: const Border(
-          bottom: BorderSide(
-            color: Colors.tealAccent,
-            width: 0.35,
+    final motion = AmbientMotionEngine.instance;
+
+    return AnimatedBuilder(
+      animation: _pulseController,
+      builder: (context, child) {
+        final scale = Tween<double>(begin: 1.0, end: 1.03)
+            .chain(CurveTween(curve: motion.adaptiveCurve))
+            .evaluate(_pulseController);
+
+        return Transform.scale(
+          scale: scale,
+          child: child,
+        );
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.05),
+          border: Border(
+            bottom: BorderSide(
+              color: Colors.white.withOpacity(0.10),
+              width: 1.2,
+            ),
           ),
         ),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            "ΔOpp: ${_fmt(_delta)}  ΔConf: ${_fmt(_confDelta)}",
-            style: const TextStyle(
-              color: Colors.white60,
-              fontSize: 10.5,
-            ),
+        child: SizedBox(
+          height: 46,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            itemCount: _opportunityDeltas.length,
+            separatorBuilder: (_, __) => const SizedBox(width: 12),
+            itemBuilder: (context, index) {
+              final delta = _opportunityDeltas[index];
+              final label = delta["label"] as String;
+              final value = delta["value"] as double;
+
+              return GestureDetector(
+                onTap: () => _onDeltaTap(label, value),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 8,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.06),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: Colors.white.withOpacity(0.10),
+                      width: 1.2,
+                    ),
+                  ),
+                  child: Center(
+                    child: Text(
+                      "$label ${(value * 100).toStringAsFixed(0)}%",
+                      style: TextStyle(
+                        color: value >= 0
+                            ? Colors.tealAccent.withOpacity(0.85)
+                            : Colors.redAccent.withOpacity(0.85),
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            },
           ),
-          Text(
-            "Stability: ${_fmt(_stability)}  Vol: ${_fmt(_volatility)}",
-            style: const TextStyle(
-              color: Colors.white60,
-              fontSize: 10.5,
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
