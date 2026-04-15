@@ -1,16 +1,15 @@
 import 'package:flutter/material.dart';
-import '../universal/memory_engine.dart';
+import '../universal/ambient_motion_engine.dart';
+import '../universal/ambient_sound_engine.dart';
+import '../universal/ambient_haptics_engine.dart';
 import '../universal/developer_logger.dart';
 
 /// DeveloperMemoryPanel
-/// ---------------------
-/// Shows internal memory engine metrics:
-/// - Short-term memory load
-/// - Long-term memory load
-/// - Memory churn rate
-/// - Memory confidence
-///
-/// This gives developers a real-time view of Ciantis’ memory stability.
+/// ----------------------
+/// Shows Ciantis' memory usage and retention signals with:
+/// - Smooth micro-motion
+/// - Soft sound + haptics on interactions
+/// - Memory pulse animations
 class DeveloperMemoryPanel extends StatefulWidget {
   const DeveloperMemoryPanel({super.key});
 
@@ -18,72 +17,117 @@ class DeveloperMemoryPanel extends StatefulWidget {
   State<DeveloperMemoryPanel> createState() => _DeveloperMemoryPanelState();
 }
 
-class _DeveloperMemoryPanelState extends State<DeveloperMemoryPanel> {
-  double _short = 0.0;
-  double _long = 0.0;
-  double _churn = 0.0;
-  double _confidence = 0.0;
+class _DeveloperMemoryPanelState extends State<DeveloperMemoryPanel>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _pulseController;
+
+  final List<Map<String, dynamic>> _memoryMetrics = [
+    {"label": "Memory Usage", "value": 0.61, "icon": Icons.storage},
+    {"label": "Cache Fill", "value": 0.44, "icon": Icons.cached},
+    {"label": "Retention Health", "value": 0.82, "icon": Icons.health_and_safety},
+    {"label": "Garbage Cycles", "value": 0.27, "icon": Icons.delete_sweep},
+    {"label": "Fragmentation", "value": 0.19, "icon": Icons.scatter_plot},
+  ];
 
   @override
   void initState() {
     super.initState();
-    DeveloperLogger.log("DeveloperMemoryPanel initialized");
 
-    MemoryEngine.instance.addListener(_update);
-    _update();
+    final motion = AmbientMotionEngine.instance;
+
+    _pulseController = AnimationController(
+      vsync: this,
+      duration: motion.adaptiveDuration,
+    );
   }
 
-  void _update() {
-    final m = MemoryEngine.instance;
+  void _onMetricTap(String label, double value) {
+    DeveloperLogger.log(
+      "Memory Panel → $label tapped (${(value * 100).toStringAsFixed(0)}%)",
+    );
 
-    setState(() {
-      _short = m.shortTermLoad;
-      _long = m.longTermLoad;
-      _churn = m.churnRate;
-      _confidence = m.memoryConfidence;
-    });
+    // 🔊 Soft UI tap sound
+    AmbientSoundEngine.instance.quickAction();
+
+    // 🤍 Soft luxury haptic tap
+    AmbientHapticsEngine.instance.softTap();
+
+    // Pulse animation
+    _pulseController.forward(from: 0.0);
   }
-
-  @override
-  void dispose() {
-    MemoryEngine.instance.removeListener(_update);
-    super.dispose();
-  }
-
-  String _fmt(double v) => v.toStringAsFixed(2);
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-      decoration: BoxDecoration(
-        color: Colors.black.withOpacity(0.40),
-        border: const Border(
-          bottom: BorderSide(
-            color: Colors.tealAccent,
-            width: 0.35,
+    final motion = AmbientMotionEngine.instance;
+
+    return AnimatedBuilder(
+      animation: _pulseController,
+      builder: (context, child) {
+        final scale = Tween<double>(begin: 1.0, end: 1.03)
+            .chain(CurveTween(curve: motion.adaptiveCurve))
+            .evaluate(_pulseController);
+
+        return Transform.scale(
+          scale: scale,
+          child: child,
+        );
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.05),
+          border: Border(
+            bottom: BorderSide(
+              color: Colors.white.withOpacity(0.10),
+              width: 1.2,
+            ),
           ),
         ),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            "Short: ${_fmt(_short)}  Long: ${_fmt(_long)}",
-            style: const TextStyle(
-              color: Colors.white60,
-              fontSize: 10.5,
-            ),
+        child: SizedBox(
+          height: 46,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            itemCount: _memoryMetrics.length,
+            separatorBuilder: (_, __) => const SizedBox(width: 12),
+            itemBuilder: (context, index) {
+              final metric = _memoryMetrics[index];
+              final label = metric["label"] as String;
+              final value = metric["value"] as double;
+              final icon = metric["icon"] as IconData;
+
+              return GestureDetector(
+                onTap: () => _onMetricTap(label, value),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 8,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.06),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: Colors.white.withOpacity(0.10),
+                      width: 1.2,
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(icon, color: Colors.white70, size: 18),
+                      const SizedBox(width: 8),
+                      Text(
+                        "$label ${(value * 100).toStringAsFixed(0)}%",
+                        style: const TextStyle(
+                          color: Colors.white70,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
           ),
-          Text(
-            "Churn: ${_fmt(_churn)}  Conf: ${_fmt(_confidence)}",
-            style: const TextStyle(
-              color: Colors.white60,
-              fontSize: 10.5,
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
