@@ -6,7 +6,7 @@ import '../universal/developer_logger.dart';
 
 /// DeveloperCognitiveResonancePanel
 /// --------------------------------
-/// Shows Ciantis' cognitive resonance metrics with:
+/// Shows Ciantis' resonance metrics with:
 /// - Smooth micro-motion
 /// - Soft sound + haptics on interactions
 /// - Resonance pulse animations
@@ -24,12 +24,12 @@ class _DeveloperCognitiveResonancePanelState
   late AnimationController _pulseController;
 
   final List<Map<String, dynamic>> _resonanceMetrics = [
-    {"label": "Reasoning Resonance", "value": 0.88, "icon": Icons.psychology},
-    {"label": "Emotional Resonance", "value": 0.84, "icon": Icons.favorite},
-    {"label": "Mode Resonance", "value": 0.81, "icon": Icons.bubble_chart},
-    {"label": "Prediction Resonance", "value": 0.86, "icon": Icons.auto_awesome},
-    {"label": "Memory Resonance", "value": 0.90, "icon": Icons.storage},
-    {"label": "System Resonance Index", "value": 0.87, "icon": Icons.settings},
+    {"label": "Reasoning Resonance", "value": 0.95, "icon": Icons.psychology},
+    {"label": "Emotional Resonance", "value": 0.91, "icon": Icons.favorite},
+    {"label": "Mode Resonance", "value": 0.88, "icon": Icons.bubble_chart},
+    {"label": "Prediction Resonance", "value": 0.93, "icon": Icons.auto_awesome},
+    {"label": "Memory Resonance", "value": 0.97, "icon": Icons.storage},
+    {"label": "System Resonance Index", "value": 0.94, "icon": Icons.settings},
   ];
 
   @override
@@ -49,13 +49,9 @@ class _DeveloperCognitiveResonancePanelState
       "Cognitive Resonance Panel → $label tapped (${(value * 100).toStringAsFixed(0)}%)",
     );
 
-    // 🔊 Soft UI tap sound
     AmbientSoundEngine.instance.quickAction();
-
-    // 🤍 Soft luxury haptic tap
     AmbientHapticsEngine.instance.softTap();
 
-    // Pulse animation
     _pulseController.forward(from: 0.0);
   }
 
