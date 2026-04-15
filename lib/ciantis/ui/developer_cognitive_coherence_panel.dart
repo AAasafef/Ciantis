@@ -6,7 +6,7 @@ import '../universal/developer_logger.dart';
 
 /// DeveloperCognitiveCoherencePanel
 /// --------------------------------
-/// Shows Ciantis' cognitive coherence metrics with:
+/// Shows Ciantis' coherence metrics with:
 /// - Smooth micro-motion
 /// - Soft sound + haptics on interactions
 /// - Coherence pulse animations
@@ -24,12 +24,12 @@ class _DeveloperCognitiveCoherencePanelState
   late AnimationController _pulseController;
 
   final List<Map<String, dynamic>> _coherenceMetrics = [
-    {"label": "Reasoning Coherence", "value": 0.90, "icon": Icons.psychology},
-    {"label": "Emotional Coherence", "value": 0.86, "icon": Icons.favorite},
-    {"label": "Mode Coherence", "value": 0.83, "icon": Icons.bubble_chart},
-    {"label": "Prediction Coherence", "value": 0.88, "icon": Icons.auto_awesome},
-    {"label": "Memory Coherence", "value": 0.92, "icon": Icons.storage},
-    {"label": "System Coherence Index", "value": 0.89, "icon": Icons.settings},
+    {"label": "Reasoning Coherence", "value": 0.95, "icon": Icons.psychology},
+    {"label": "Emotional Coherence", "value": 0.91, "icon": Icons.favorite},
+    {"label": "Mode Coherence", "value": 0.88, "icon": Icons.bubble_chart},
+    {"label": "Prediction Coherence", "value": 0.93, "icon": Icons.auto_awesome},
+    {"label": "Memory Coherence", "value": 0.97, "icon": Icons.storage},
+    {"label": "System Coherence Index", "value": 0.94, "icon": Icons.settings},
   ];
 
   @override
@@ -49,13 +49,9 @@ class _DeveloperCognitiveCoherencePanelState
       "Cognitive Coherence Panel → $label tapped (${(value * 100).toStringAsFixed(0)}%)",
     );
 
-    // 🔊 Soft UI tap sound
     AmbientSoundEngine.instance.quickAction();
-
-    // 🤍 Soft luxury haptic tap
     AmbientHapticsEngine.instance.softTap();
 
-    // Pulse animation
     _pulseController.forward(from: 0.0);
   }
 
