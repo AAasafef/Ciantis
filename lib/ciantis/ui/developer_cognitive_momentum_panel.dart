@@ -5,8 +5,8 @@ import '../universal/ambient_haptics_engine.dart';
 import '../universal/developer_logger.dart';
 
 /// DeveloperCognitiveMomentumPanel
-/// --------------------------------
-/// Shows Ciantis' cognitive momentum metrics with:
+/// -------------------------------
+/// Shows Ciantis' momentum metrics with:
 /// - Smooth micro-motion
 /// - Soft sound + haptics on interactions
 /// - Momentum pulse animations
@@ -24,12 +24,12 @@ class _DeveloperCognitiveMomentumPanelState
   late AnimationController _pulseController;
 
   final List<Map<String, dynamic>> _momentumMetrics = [
-    {"label": "Reasoning Momentum", "value": 0.84, "icon": Icons.psychology},
-    {"label": "Emotional Momentum", "value": 0.80, "icon": Icons.favorite},
-    {"label": "Mode Momentum", "value": 0.77, "icon": Icons.bubble_chart},
-    {"label": "Prediction Momentum", "value": 0.83, "icon": Icons.auto_awesome},
-    {"label": "Memory Momentum", "value": 0.88, "icon": Icons.storage},
-    {"label": "System Momentum Index", "value": 0.85, "icon": Icons.settings},
+    {"label": "Reasoning Momentum", "value": 0.95, "icon": Icons.psychology},
+    {"label": "Emotional Momentum", "value": 0.91, "icon": Icons.favorite},
+    {"label": "Mode Momentum", "value": 0.88, "icon": Icons.bubble_chart},
+    {"label": "Prediction Momentum", "value": 0.93, "icon": Icons.auto_awesome},
+    {"label": "Memory Momentum", "value": 0.97, "icon": Icons.storage},
+    {"label": "System Momentum Index", "value": 0.94, "icon": Icons.settings},
   ];
 
   @override
@@ -49,13 +49,9 @@ class _DeveloperCognitiveMomentumPanelState
       "Cognitive Momentum Panel → $label tapped (${(value * 100).toStringAsFixed(0)}%)",
     );
 
-    // 🔊 Soft UI tap sound
     AmbientSoundEngine.instance.quickAction();
-
-    // 🤍 Soft luxury haptic tap
     AmbientHapticsEngine.instance.softTap();
 
-    // Pulse animation
     _pulseController.forward(from: 0.0);
   }
 
