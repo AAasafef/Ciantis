@@ -6,7 +6,7 @@ import '../universal/developer_logger.dart';
 
 /// DeveloperCognitiveHarmonicsPanel
 /// --------------------------------
-/// Shows Ciantis' cognitive harmonic metrics with:
+/// Shows Ciantis' harmonic metrics with:
 /// - Smooth micro-motion
 /// - Soft sound + haptics on interactions
 /// - Harmonic pulse animations
@@ -24,12 +24,12 @@ class _DeveloperCognitiveHarmonicsPanelState
   late AnimationController _pulseController;
 
   final List<Map<String, dynamic>> _harmonicMetrics = [
-    {"label": "Reasoning Harmonics", "value": 0.85, "icon": Icons.psychology},
-    {"label": "Emotional Harmonics", "value": 0.81, "icon": Icons.favorite},
-    {"label": "Mode Harmonics", "value": 0.78, "icon": Icons.bubble_chart},
-    {"label": "Prediction Harmonics", "value": 0.83, "icon": Icons.auto_awesome},
-    {"label": "Memory Harmonics", "value": 0.88, "icon": Icons.storage},
-    {"label": "System Harmonic Index", "value": 0.86, "icon": Icons.settings},
+    {"label": "Reasoning Harmonics", "value": 0.95, "icon": Icons.psychology},
+    {"label": "Emotional Harmonics", "value": 0.91, "icon": Icons.favorite},
+    {"label": "Mode Harmonics", "value": 0.88, "icon": Icons.bubble_chart},
+    {"label": "Prediction Harmonics", "value": 0.93, "icon": Icons.auto_awesome},
+    {"label": "Memory Harmonics", "value": 0.97, "icon": Icons.storage},
+    {"label": "System Harmonics Index", "value": 0.94, "icon": Icons.settings},
   ];
 
   @override
@@ -44,18 +44,14 @@ class _DeveloperCognitiveHarmonicsPanelState
     );
   }
 
-  void _onHarmonicTap(String label, double value) {
+  void _onHarmonicsTap(String label, double value) {
     DeveloperLogger.log(
       "Cognitive Harmonics Panel → $label tapped (${(value * 100).toStringAsFixed(0)}%)",
     );
 
-    // 🔊 Soft UI tap sound
     AmbientSoundEngine.instance.quickAction();
-
-    // 🤍 Soft luxury haptic tap
     AmbientHapticsEngine.instance.softTap();
 
-    // Pulse animation
     _pulseController.forward(from: 0.0);
   }
 
@@ -93,7 +89,7 @@ class _DeveloperCognitiveHarmonicsPanelState
             final icon = metric["icon"] as IconData;
 
             return GestureDetector(
-              onTap: () => _onHarmonicTap(label, value),
+              onTap: () => _onHarmonicsTap(label, value),
               child: Container(
                 margin: const EdgeInsets.only(bottom: 12),
                 padding: const EdgeInsets.symmetric(
