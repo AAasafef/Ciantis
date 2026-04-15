@@ -6,7 +6,7 @@ import '../universal/developer_logger.dart';
 
 /// DeveloperCognitiveAlignmentPanel
 /// --------------------------------
-/// Shows Ciantis' cross-engine cognitive alignment with:
+/// Shows Ciantis' alignment metrics with:
 /// - Smooth micro-motion
 /// - Soft sound + haptics on interactions
 /// - Alignment pulse animations
@@ -24,11 +24,12 @@ class _DeveloperCognitiveAlignmentPanelState
   late AnimationController _pulseController;
 
   final List<Map<String, dynamic>> _alignmentMetrics = [
-    {"label": "Mode ↔ Emotion Alignment", "value": 0.84, "icon": Icons.favorite},
-    {"label": "Load ↔ Opportunity Alignment", "value": 0.72, "icon": Icons.speed},
-    {"label": "Prediction ↔ Reality Alignment", "value": 0.79, "icon": Icons.auto_awesome},
-    {"label": "Memory ↔ Reasoning Alignment", "value": 0.88, "icon": Icons.psychology},
-    {"label": "System Harmony Index", "value": 0.81, "icon": Icons.settings},
+    {"label": "Reasoning Alignment", "value": 0.95, "icon": Icons.psychology},
+    {"label": "Emotional Alignment", "value": 0.91, "icon": Icons.favorite},
+    {"label": "Mode Alignment", "value": 0.88, "icon": Icons.bubble_chart},
+    {"label": "Prediction Alignment", "value": 0.93, "icon": Icons.auto_awesome},
+    {"label": "Memory Alignment", "value": 0.97, "icon": Icons.storage},
+    {"label": "System Alignment Index", "value": 0.94, "icon": Icons.settings},
   ];
 
   @override
@@ -48,13 +49,9 @@ class _DeveloperCognitiveAlignmentPanelState
       "Cognitive Alignment Panel → $label tapped (${(value * 100).toStringAsFixed(0)}%)",
     );
 
-    // 🔊 Soft UI tap sound
     AmbientSoundEngine.instance.quickAction();
-
-    // 🤍 Soft luxury haptic tap
     AmbientHapticsEngine.instance.softTap();
 
-    // Pulse animation
     _pulseController.forward(from: 0.0);
   }
 
