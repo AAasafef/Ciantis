@@ -1,16 +1,15 @@
 import 'package:flutter/material.dart';
-import '../universal/mode_engine.dart';
+import '../universal/ambient_motion_engine.dart';
+import '../universal/ambient_sound_engine.dart';
+import '../universal/ambient_haptics_engine.dart';
 import '../universal/developer_logger.dart';
 
 /// DeveloperModePanel
-/// -------------------
-/// Shows internal mode engine metrics:
-/// - Active mode
-/// - Mode intensity
-/// - Mode stability
-/// - Confidence
-///
-/// This gives developers a real-time view of Ciantis’ mode interpretation.
+/// --------------------
+/// Shows Ciantis' current mode and mode deltas with:
+/// - Smooth micro-motion
+/// - Soft sound + haptics on interactions
+/// - Mode pulse animations
 class DeveloperModePanel extends StatefulWidget {
   const DeveloperModePanel({super.key});
 
@@ -18,72 +17,155 @@ class DeveloperModePanel extends StatefulWidget {
   State<DeveloperModePanel> createState() => _DeveloperModePanelState();
 }
 
-class _DeveloperModePanelState extends State<DeveloperModePanel> {
-  String _mode = "Neutral";
-  double _intensity = 0.0;
-  double _stability = 0.0;
-  double _confidence = 0.0;
+class _DeveloperModePanelState extends State<DeveloperModePanel>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _pulseController;
+
+  String _currentMode = "Reflective";
+
+  final List<Map<String, dynamic>> _modeDeltas = [
+    {"label": "Focus ↑", "value": 0.14},
+    {"label": "Calm ↓", "value": -0.09},
+    {"label": "Energy ↑", "value": 0.11},
+    {"label": "Stress ↓", "value": -0.06},
+  ];
 
   @override
   void initState() {
     super.initState();
-    DeveloperLogger.log("DeveloperModePanel initialized");
 
-    ModeEngine.instance.addListener(_update);
-    _update();
+    final motion = AmbientMotionEngine.instance;
+
+    _pulseController = AnimationController(
+      vsync: this,
+      duration: motion.adaptiveDuration,
+    );
   }
 
-  void _update() {
-    final m = ModeEngine.instance;
+  void _onModeTap() {
+    DeveloperLogger.log("Mode Panel → Current Mode tapped");
 
-    setState(() {
-      _mode = m.activeMode;
-      _intensity = m.intensity;
-      _stability = m.stability;
-      _confidence = m.confidence;
-    });
+    // 🔊 Soft UI tap sound
+    AmbientSoundEngine.instance.quickAction();
+
+    // 🤍 Soft luxury haptic tap
+    AmbientHapticsEngine.instance.softTap();
+
+    _pulseController.forward(from: 0.0);
   }
 
-  @override
-  void dispose() {
-    ModeEngine.instance.removeListener(_update);
-    super.dispose();
-  }
+  void _onDeltaTap(String label, double value) {
+    DeveloperLogger.log(
+      "Mode Panel → Delta tapped: $label (${(value * 100).toStringAsFixed(0)}%)",
+    );
 
-  String _fmt(double v) => v.toStringAsFixed(2);
+    // 🔊 Soft UI tap sound
+    AmbientSoundEngine.instance.quickAction();
+
+    // 🤍 Soft luxury haptic tap
+    AmbientHapticsEngine.instance.softTap();
+
+    _pulseController.forward(from: 0.0);
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-      decoration: BoxDecoration(
-        color: Colors.black.withOpacity(0.40),
-        border: const Border(
-          bottom: BorderSide(
-            color: Colors.tealAccent,
-            width: 0.35,
+    final motion = AmbientMotionEngine.instance;
+
+    return AnimatedBuilder(
+      animation: _pulseController,
+      builder: (context, child) {
+        final scale = Tween<double>(begin: 1.0, end: 1.03)
+            .chain(CurveTween(curve: motion.adaptiveCurve))
+            .evaluate(_pulseController);
+
+        return Transform.scale(
+          scale: scale,
+          child: child,
+        );
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.05),
+          border: Border(
+            bottom: BorderSide(
+              color: Colors.white.withOpacity(0.10),
+              width: 1.2,
+            ),
           ),
         ),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            "Mode: $_mode  Intensity: ${_fmt(_intensity)}",
-            style: const TextStyle(
-              color: Colors.white60,
-              fontSize: 10.5,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // CURRENT MODE
+            GestureDetector(
+              onTap: _onModeTap,
+              child: Row(
+                children: [
+                  const Icon(Icons.bubble_chart,
+                      color: Colors.tealAccent, size: 20),
+                  const SizedBox(width: 10),
+                  Text(
+                    "Mode: $_currentMode",
+                    style: const TextStyle(
+                      color: Colors.tealAccent,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-          Text(
-            "Stability: ${_fmt(_stability)}  Conf: ${_fmt(_confidence)}",
-            style: const TextStyle(
-              color: Colors.white60,
-              fontSize: 10.5,
+
+            const SizedBox(height: 12),
+
+            // MODE DELTAS
+            SizedBox(
+              height: 46,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                itemCount: _modeDeltas.length,
+                separatorBuilder: (_, __) => const SizedBox(width: 12),
+                itemBuilder: (context, index) {
+                  final delta = _modeDeltas[index];
+                  final label = delta["label"] as String;
+                  final value = delta["value"] as double;
+
+                  return GestureDetector(
+                    onTap: () => _onDeltaTap(label, value),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 8,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.06),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: Colors.white.withOpacity(0.10),
+                          width: 1.2,
+                        ),
+                      ),
+                      child: Center(
+                        child: Text(
+                          "$label ${(value * 100).toStringAsFixed(0)}%",
+                          style: TextStyle(
+                            color: value >= 0
+                                ? Colors.tealAccent.withOpacity(0.85)
+                                : Colors.redAccent.withOpacity(0.85),
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
