@@ -6,7 +6,7 @@ import '../universal/developer_logger.dart';
 
 /// DeveloperCognitiveTrajectoryPanel
 /// ---------------------------------
-/// Shows Ciantis' long-range cognitive trajectory metrics with:
+/// Shows Ciantis' trajectory metrics with:
 /// - Smooth micro-motion
 /// - Soft sound + haptics on interactions
 /// - Trajectory pulse animations
@@ -24,12 +24,12 @@ class _DeveloperCognitiveTrajectoryPanelState
   late AnimationController _pulseController;
 
   final List<Map<String, dynamic>> _trajectoryMetrics = [
-    {"label": "Reasoning Trajectory", "value": 0.88, "icon": Icons.psychology},
-    {"label": "Emotional Trajectory", "value": 0.84, "icon": Icons.favorite},
-    {"label": "Mode Trajectory", "value": 0.81, "icon": Icons.bubble_chart},
-    {"label": "Prediction Trajectory", "value": 0.86, "icon": Icons.auto_awesome},
-    {"label": "Memory Trajectory", "value": 0.89, "icon": Icons.storage},
-    {"label": "System Trajectory Index", "value": 0.87, "icon": Icons.settings},
+    {"label": "Reasoning Trajectory", "value": 0.95, "icon": Icons.psychology},
+    {"label": "Emotional Trajectory", "value": 0.91, "icon": Icons.favorite},
+    {"label": "Mode Trajectory", "value": 0.88, "icon": Icons.bubble_chart},
+    {"label": "Prediction Trajectory", "value": 0.93, "icon": Icons.auto_awesome},
+    {"label": "Memory Trajectory", "value": 0.97, "icon": Icons.storage},
+    {"label": "System Trajectory Index", "value": 0.94, "icon": Icons.settings},
   ];
 
   @override
@@ -49,13 +49,9 @@ class _DeveloperCognitiveTrajectoryPanelState
       "Cognitive Trajectory Panel → $label tapped (${(value * 100).toStringAsFixed(0)}%)",
     );
 
-    // 🔊 Soft UI tap sound
     AmbientSoundEngine.instance.quickAction();
-
-    // 🤍 Soft luxury haptic tap
     AmbientHapticsEngine.instance.softTap();
 
-    // Pulse animation
     _pulseController.forward(from: 0.0);
   }
 
