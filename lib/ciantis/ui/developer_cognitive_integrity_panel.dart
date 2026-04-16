@@ -6,7 +6,7 @@ import '../universal/developer_logger.dart';
 
 /// DeveloperCognitiveIntegrityPanel
 /// --------------------------------
-/// Shows Ciantis' cognitive integrity metrics with:
+/// Shows Ciantis' integrity metrics with:
 /// - Smooth micro-motion
 /// - Soft sound + haptics on interactions
 /// - Integrity pulse animations
@@ -24,12 +24,12 @@ class _DeveloperCognitiveIntegrityPanelState
   late AnimationController _pulseController;
 
   final List<Map<String, dynamic>> _integrityMetrics = [
-    {"label": "Reasoning Integrity", "value": 0.91, "icon": Icons.psychology},
-    {"label": "Memory Integrity", "value": 0.88, "icon": Icons.storage},
-    {"label": "Prediction Integrity", "value": 0.84, "icon": Icons.auto_awesome},
-    {"label": "Emotional Integrity", "value": 0.86, "icon": Icons.favorite},
-    {"label": "Mode Integrity", "value": 0.82, "icon": Icons.bubble_chart},
-    {"label": "System Stability Index", "value": 0.89, "icon": Icons.settings},
+    {"label": "Reasoning Integrity", "value": 0.95, "icon": Icons.psychology},
+    {"label": "Emotional Integrity", "value": 0.91, "icon": Icons.favorite},
+    {"label": "Mode Integrity", "value": 0.88, "icon": Icons.bubble_chart},
+    {"label": "Prediction Integrity", "value": 0.93, "icon": Icons.auto_awesome},
+    {"label": "Memory Integrity", "value": 0.97, "icon": Icons.storage},
+    {"label": "System Integrity Index", "value": 0.94, "icon": Icons.settings},
   ];
 
   @override
@@ -49,13 +49,9 @@ class _DeveloperCognitiveIntegrityPanelState
       "Cognitive Integrity Panel → $label tapped (${(value * 100).toStringAsFixed(0)}%)",
     );
 
-    // 🔊 Soft UI tap sound
     AmbientSoundEngine.instance.quickAction();
-
-    // 🤍 Soft luxury haptic tap
     AmbientHapticsEngine.instance.softTap();
 
-    // Pulse animation
     _pulseController.forward(from: 0.0);
   }
 
