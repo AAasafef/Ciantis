@@ -6,7 +6,7 @@ import '../universal/developer_logger.dart';
 
 /// DeveloperCognitiveFrequencyPanel
 /// --------------------------------
-/// Shows Ciantis' cognitive frequency metrics with:
+/// Shows Ciantis' frequency metrics with:
 /// - Smooth micro-motion
 /// - Soft sound + haptics on interactions
 /// - Frequency pulse animations
@@ -24,12 +24,12 @@ class _DeveloperCognitiveFrequencyPanelState
   late AnimationController _pulseController;
 
   final List<Map<String, dynamic>> _frequencyMetrics = [
-    {"label": "Reasoning Frequency", "value": 0.83, "icon": Icons.psychology},
-    {"label": "Emotional Frequency", "value": 0.79, "icon": Icons.favorite},
-    {"label": "Mode Frequency", "value": 0.76, "icon": Icons.bubble_chart},
-    {"label": "Prediction Frequency", "value": 0.81, "icon": Icons.auto_awesome},
-    {"label": "Memory Frequency", "value": 0.86, "icon": Icons.storage},
-    {"label": "System Frequency Index", "value": 0.84, "icon": Icons.settings},
+    {"label": "Reasoning Frequency", "value": 0.95, "icon": Icons.psychology},
+    {"label": "Emotional Frequency", "value": 0.91, "icon": Icons.favorite},
+    {"label": "Mode Frequency", "value": 0.88, "icon": Icons.bubble_chart},
+    {"label": "Prediction Frequency", "value": 0.93, "icon": Icons.auto_awesome},
+    {"label": "Memory Frequency", "value": 0.97, "icon": Icons.storage},
+    {"label": "System Frequency Index", "value": 0.94, "icon": Icons.settings},
   ];
 
   @override
@@ -49,13 +49,9 @@ class _DeveloperCognitiveFrequencyPanelState
       "Cognitive Frequency Panel → $label tapped (${(value * 100).toStringAsFixed(0)}%)",
     );
 
-    // 🔊 Soft UI tap sound
     AmbientSoundEngine.instance.quickAction();
-
-    // 🤍 Soft luxury haptic tap
     AmbientHapticsEngine.instance.softTap();
 
-    // Pulse animation
     _pulseController.forward(from: 0.0);
   }
 
