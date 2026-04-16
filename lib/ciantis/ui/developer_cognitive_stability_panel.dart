@@ -6,7 +6,7 @@ import '../universal/developer_logger.dart';
 
 /// DeveloperCognitiveStabilityPanel
 /// --------------------------------
-/// Shows Ciantis' cognitive stability metrics with:
+/// Shows Ciantis' stability metrics with:
 /// - Smooth micro-motion
 /// - Soft sound + haptics on interactions
 /// - Stability pulse animations
@@ -24,12 +24,12 @@ class _DeveloperCognitiveStabilityPanelState
   late AnimationController _pulseController;
 
   final List<Map<String, dynamic>> _stabilityMetrics = [
-    {"label": "Reasoning Stability", "value": 0.89, "icon": Icons.psychology},
-    {"label": "Emotional Stability", "value": 0.86, "icon": Icons.favorite},
-    {"label": "Mode Stability", "value": 0.82, "icon": Icons.bubble_chart},
-    {"label": "Prediction Stability", "value": 0.84, "icon": Icons.auto_awesome},
-    {"label": "Memory Stability", "value": 0.87, "icon": Icons.storage},
-    {"label": "System Stability Index", "value": 0.90, "icon": Icons.settings},
+    {"label": "Reasoning Stability", "value": 0.95, "icon": Icons.psychology},
+    {"label": "Emotional Stability", "value": 0.91, "icon": Icons.favorite},
+    {"label": "Mode Stability", "value": 0.88, "icon": Icons.bubble_chart},
+    {"label": "Prediction Stability", "value": 0.93, "icon": Icons.auto_awesome},
+    {"label": "Memory Stability", "value": 0.97, "icon": Icons.storage},
+    {"label": "System Stability Index", "value": 0.94, "icon": Icons.settings},
   ];
 
   @override
@@ -49,13 +49,9 @@ class _DeveloperCognitiveStabilityPanelState
       "Cognitive Stability Panel → $label tapped (${(value * 100).toStringAsFixed(0)}%)",
     );
 
-    // 🔊 Soft UI tap sound
     AmbientSoundEngine.instance.quickAction();
-
-    // 🤍 Soft luxury haptic tap
     AmbientHapticsEngine.instance.softTap();
 
-    // Pulse animation
     _pulseController.forward(from: 0.0);
   }
 
