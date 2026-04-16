@@ -6,7 +6,7 @@ import '../universal/developer_logger.dart';
 
 /// DeveloperCognitiveOscillationPanel
 /// ----------------------------------
-/// Shows Ciantis' cognitive oscillation metrics with:
+/// Shows Ciantis' oscillation metrics with:
 /// - Smooth micro-motion
 /// - Soft sound + haptics on interactions
 /// - Oscillation pulse animations
@@ -24,12 +24,12 @@ class _DeveloperCognitiveOscillationPanelState
   late AnimationController _pulseController;
 
   final List<Map<String, dynamic>> _oscillationMetrics = [
-    {"label": "Reasoning Oscillation", "value": 0.77, "icon": Icons.psychology},
-    {"label": "Emotional Oscillation", "value": 0.73, "icon": Icons.favorite},
-    {"label": "Mode Oscillation", "value": 0.70, "icon": Icons.bubble_chart},
-    {"label": "Prediction Oscillation", "value": 0.75, "icon": Icons.auto_awesome},
-    {"label": "Memory Oscillation", "value": 0.79, "icon": Icons.storage},
-    {"label": "System Oscillation Index", "value": 0.76, "icon": Icons.settings},
+    {"label": "Reasoning Oscillation", "value": 0.95, "icon": Icons.psychology},
+    {"label": "Emotional Oscillation", "value": 0.91, "icon": Icons.favorite},
+    {"label": "Mode Oscillation", "value": 0.88, "icon": Icons.bubble_chart},
+    {"label": "Prediction Oscillation", "value": 0.93, "icon": Icons.auto_awesome},
+    {"label": "Memory Oscillation", "value": 0.97, "icon": Icons.storage},
+    {"label": "System Oscillation Index", "value": 0.94, "icon": Icons.settings},
   ];
 
   @override
@@ -49,13 +49,9 @@ class _DeveloperCognitiveOscillationPanelState
       "Cognitive Oscillation Panel → $label tapped (${(value * 100).toStringAsFixed(0)}%)",
     );
 
-    // 🔊 Soft UI tap sound
     AmbientSoundEngine.instance.quickAction();
-
-    // 🤍 Soft luxury haptic tap
     AmbientHapticsEngine.instance.softTap();
 
-    // Pulse animation
     _pulseController.forward(from: 0.0);
   }
 
