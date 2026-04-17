@@ -24,12 +24,13 @@ class _DeveloperCognitiveResonancePanelState
   late AnimationController _pulseController;
 
   final List<Map<String, dynamic>> _resonanceMetrics = [
-    {"label": "Reasoning Resonance", "value": 0.95, "icon": Icons.psychology},
-    {"label": "Emotional Resonance", "value": 0.91, "icon": Icons.favorite},
-    {"label": "Mode Resonance", "value": 0.88, "icon": Icons.bubble_chart},
-    {"label": "Prediction Resonance", "value": 0.93, "icon": Icons.auto_awesome},
-    {"label": "Memory Resonance", "value": 0.97, "icon": Icons.storage},
-    {"label": "System Resonance Index", "value": 0.94, "icon": Icons.settings},
+    {"label": "Resonance Clarity", "value": 0.94, "icon": Icons.lightbulb},
+    {"label": "Resonance Stability", "value": 0.91, "icon": Icons.balance},
+    {"label": "Resonance Drift", "value": 0.87, "icon": Icons.waves},
+    {"label": "Resonance Load", "value": 0.89, "icon": Icons.speed},
+    {"label": "Resonance Amplitude", "value": 0.95, "icon": Icons.graphic_eq},
+    {"label": "Resonance Accuracy", "value": 0.93, "icon": Icons.check_circle},
+    {"label": "Resonance System Index", "value": 0.96, "icon": Icons.settings},
   ];
 
   @override
