@@ -6,7 +6,7 @@ import '../universal/developer_logger.dart';
 
 /// DeveloperCognitiveTimelinePanel
 /// --------------------------------
-/// Shows Ciantis' chronological cognitive events with:
+/// Shows Ciantis' timeline metrics with:
 /// - Smooth micro-motion
 /// - Soft sound + haptics on interactions
 /// - Timeline pulse animations
@@ -23,13 +23,13 @@ class _DeveloperCognitiveTimelinePanelState
     with SingleTickerProviderStateMixin {
   late AnimationController _pulseController;
 
-  final List<Map<String, dynamic>> _timelineEvents = [
-    {"label": "Mode Shift → Reflective", "time": "08:12 AM"},
-    {"label": "Emotion Stabilized → Calm", "time": "08:14 AM"},
-    {"label": "Load Spike Detected", "time": "08:17 AM"},
-    {"label": "Opportunity Window ↑", "time": "08:19 AM"},
-    {"label": "Prediction Confirmed: Task Review", "time": "08:21 AM"},
-    {"label": "System Sync Completed", "time": "08:23 AM"},
+  final List<Map<String, dynamic>> _timelineMetrics = [
+    {"label": "Reasoning Timeline", "value": 0.95, "icon": Icons.psychology},
+    {"label": "Emotional Timeline", "value": 0.91, "icon": Icons.favorite},
+    {"label": "Mode Timeline", "value": 0.88, "icon": Icons.bubble_chart},
+    {"label": "Prediction Timeline", "value": 0.93, "icon": Icons.auto_awesome},
+    {"label": "Memory Timeline", "value": 0.97, "icon": Icons.storage},
+    {"label": "System Timeline Index", "value": 0.94, "icon": Icons.settings},
   ];
 
   @override
@@ -44,18 +44,14 @@ class _DeveloperCognitiveTimelinePanelState
     );
   }
 
-  void _onEventTap(String label, String time) {
+  void _onTimelineTap(String label, double value) {
     DeveloperLogger.log(
-      "Cognitive Timeline Panel → Event tapped: $label at $time",
+      "Cognitive Timeline Panel → $label tapped (${(value * 100).toStringAsFixed(0)}%)",
     );
 
-    // 🔊 Soft UI tap sound
     AmbientSoundEngine.instance.quickAction();
-
-    // 🤍 Soft luxury haptic tap
     AmbientHapticsEngine.instance.softTap();
 
-    // Pulse animation
     _pulseController.forward(from: 0.0);
   }
 
@@ -87,12 +83,13 @@ class _DeveloperCognitiveTimelinePanelState
           ),
         ),
         child: Column(
-          children: _timelineEvents.map((event) {
-            final label = event["label"] as String;
-            final time = event["time"] as String;
+          children: _timelineMetrics.map((metric) {
+            final label = metric["label"] as String;
+            final value = metric["value"] as double;
+            final icon = metric["icon"] as IconData;
 
             return GestureDetector(
-              onTap: () => _onEventTap(label, time),
+              onTap: () => _onTimelineTap(label, value),
               child: Container(
                 margin: const EdgeInsets.only(bottom: 12),
                 padding: const EdgeInsets.symmetric(
@@ -109,23 +106,15 @@ class _DeveloperCognitiveTimelinePanelState
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.timeline,
-                        color: Colors.white70, size: 20),
+                    Icon(icon, color: Colors.white70, size: 20),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
-                        label,
+                        "$label ${(value * 100).toStringAsFixed(0)}%",
                         style: const TextStyle(
                           color: Colors.white70,
                           fontSize: 14,
                         ),
-                      ),
-                    ),
-                    Text(
-                      time,
-                      style: const TextStyle(
-                        color: Colors.white38,
-                        fontSize: 12,
                       ),
                     ),
                   ],
