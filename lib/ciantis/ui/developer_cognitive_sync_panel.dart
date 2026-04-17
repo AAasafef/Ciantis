@@ -6,7 +6,7 @@ import '../universal/developer_logger.dart';
 
 /// DeveloperCognitiveSyncPanel
 /// ----------------------------
-/// Shows Ciantis' internal cognitive sync cycles with:
+/// Shows Ciantis' sync metrics with:
 /// - Smooth micro-motion
 /// - Soft sound + haptics on interactions
 /// - Sync pulse animations
@@ -23,12 +23,13 @@ class _DeveloperCognitiveSyncPanelState
     with SingleTickerProviderStateMixin {
   late AnimationController _pulseController;
 
-  final List<Map<String, dynamic>> _syncEvents = [
-    {"label": "Memory Sync Completed", "time": "08:23 AM"},
-    {"label": "Prediction Sync Updated", "time": "08:24 AM"},
-    {"label": "Mode/Emotion Alignment", "time": "08:25 AM"},
-    {"label": "Load Harmonization", "time": "08:26 AM"},
-    {"label": "System Recalibration", "time": "08:27 AM"},
+  final List<Map<String, dynamic>> _syncMetrics = [
+    {"label": "Reasoning Sync", "value": 0.95, "icon": Icons.psychology},
+    {"label": "Emotional Sync", "value": 0.91, "icon": Icons.favorite},
+    {"label": "Mode Sync", "value": 0.88, "icon": Icons.bubble_chart},
+    {"label": "Prediction Sync", "value": 0.93, "icon": Icons.auto_awesome},
+    {"label": "Memory Sync", "value": 0.97, "icon": Icons.storage},
+    {"label": "System Sync Index", "value": 0.94, "icon": Icons.settings},
   ];
 
   @override
@@ -43,18 +44,14 @@ class _DeveloperCognitiveSyncPanelState
     );
   }
 
-  void _onSyncTap(String label, String time) {
+  void _onSyncTap(String label, double value) {
     DeveloperLogger.log(
-      "Cognitive Sync Panel → Sync tapped: $label at $time",
+      "Cognitive Sync Panel → $label tapped (${(value * 100).toStringAsFixed(0)}%)",
     );
 
-    // 🔊 Soft UI tap sound
     AmbientSoundEngine.instance.quickAction();
-
-    // 🤍 Soft luxury haptic tap
     AmbientHapticsEngine.instance.softTap();
 
-    // Pulse animation
     _pulseController.forward(from: 0.0);
   }
 
@@ -86,12 +83,13 @@ class _DeveloperCognitiveSyncPanelState
           ),
         ),
         child: Column(
-          children: _syncEvents.map((event) {
-            final label = event["label"] as String;
-            final time = event["time"] as String;
+          children: _syncMetrics.map((metric) {
+            final label = metric["label"] as String;
+            final value = metric["value"] as double;
+            final icon = metric["icon"] as IconData;
 
             return GestureDetector(
-              onTap: () => _onSyncTap(label, time),
+              onTap: () => _onSyncTap(label, value),
               child: Container(
                 margin: const EdgeInsets.only(bottom: 12),
                 padding: const EdgeInsets.symmetric(
@@ -108,22 +106,15 @@ class _DeveloperCognitiveSyncPanelState
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.sync, color: Colors.white70, size: 20),
+                    Icon(icon, color: Colors.white70, size: 20),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
-                        label,
+                        "$label ${(value * 100).toStringAsFixed(0)}%",
                         style: const TextStyle(
                           color: Colors.white70,
                           fontSize: 14,
                         ),
-                      ),
-                    ),
-                    Text(
-                      time,
-                      style: const TextStyle(
-                        color: Colors.white38,
-                        fontSize: 12,
                       ),
                     ),
                   ],
