@@ -6,7 +6,7 @@ import '../universal/developer_logger.dart';
 
 /// DeveloperCognitiveEnginePanel
 /// ------------------------------
-/// Shows Ciantis' internal cognitive engines with:
+/// Shows Ciantis' cognitive engine metrics with:
 /// - Smooth micro-motion
 /// - Soft sound + haptics on interactions
 /// - Engine pulse animations
@@ -23,15 +23,13 @@ class _DeveloperCognitiveEnginePanelState
     with SingleTickerProviderStateMixin {
   late AnimationController _pulseController;
 
-  final List<Map<String, dynamic>> _engines = [
-    {"label": "Reasoning Engine", "value": 0.87, "icon": Icons.psychology},
-    {"label": "Emotion Engine", "value": 0.78, "icon": Icons.favorite},
-    {"label": "Mode Engine", "value": 0.74, "icon": Icons.bubble_chart},
-    {"label": "Load Engine", "value": 0.69, "icon": Icons.speed},
-    {"label": "Opportunity Engine", "value": 0.81, "icon": Icons.lightbulb},
-    {"label": "Prediction Engine", "value": 0.83, "icon": Icons.auto_awesome},
-    {"label": "Memory Engine", "value": 0.91, "icon": Icons.storage},
-    {"label": "System Engine", "value": 0.72, "icon": Icons.settings},
+  final List<Map<String, dynamic>> _engineMetrics = [
+    {"label": "Reasoning Engine Output", "value": 0.95, "icon": Icons.psychology},
+    {"label": "Emotional Engine Output", "value": 0.91, "icon": Icons.favorite},
+    {"label": "Mode Engine Output", "value": 0.88, "icon": Icons.bubble_chart},
+    {"label": "Predictive Engine Output", "value": 0.93, "icon": Icons.auto_awesome},
+    {"label": "Memory Engine Output", "value": 0.97, "icon": Icons.storage},
+    {"label": "System Engine Index", "value": 0.94, "icon": Icons.settings},
   ];
 
   @override
@@ -51,13 +49,9 @@ class _DeveloperCognitiveEnginePanelState
       "Cognitive Engine Panel → $label tapped (${(value * 100).toStringAsFixed(0)}%)",
     );
 
-    // 🔊 Soft UI tap sound
     AmbientSoundEngine.instance.quickAction();
-
-    // 🤍 Soft luxury haptic tap
     AmbientHapticsEngine.instance.softTap();
 
-    // Pulse animation
     _pulseController.forward(from: 0.0);
   }
 
@@ -88,17 +82,16 @@ class _DeveloperCognitiveEnginePanelState
             ),
           ),
         ),
-        child: Wrap(
-          spacing: 12,
-          runSpacing: 12,
-          children: _engines.map((engine) {
-            final label = engine["label"] as String;
-            final value = engine["value"] as double;
-            final icon = engine["icon"] as IconData;
+        child: Column(
+          children: _engineMetrics.map((metric) {
+            final label = metric["label"] as String;
+            final value = metric["value"] as double;
+            final icon = metric["icon"] as IconData;
 
             return GestureDetector(
               onTap: () => _onEngineTap(label, value),
               child: Container(
+                margin: const EdgeInsets.only(bottom: 12),
                 padding: const EdgeInsets.symmetric(
                   horizontal: 14,
                   vertical: 12,
@@ -112,15 +105,16 @@ class _DeveloperCognitiveEnginePanelState
                   ),
                 ),
                 child: Row(
-                  mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(icon, color: Colors.white70, size: 20),
-                    const SizedBox(width: 10),
-                    Text(
-                      "$label ${(value * 100).toStringAsFixed(0)}%",
-                      style: const TextStyle(
-                        color: Colors.white70,
-                        fontSize: 14,
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        "$label ${(value * 100).toStringAsFixed(0)}%",
+                        style: const TextStyle(
+                          color: Colors.white70,
+                          fontSize: 14,
+                        ),
                       ),
                     ),
                   ],
