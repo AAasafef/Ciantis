@@ -6,7 +6,7 @@ import '../universal/developer_logger.dart';
 
 /// DeveloperCognitiveLoadPanel
 /// ----------------------------
-/// Shows Ciantis' cognitive load state with:
+/// Shows Ciantis' cognitive load metrics with:
 /// - Smooth micro-motion
 /// - Soft sound + haptics on interactions
 /// - Load pulse animations
@@ -23,15 +23,14 @@ class _DeveloperCognitiveLoadPanelState
     with SingleTickerProviderStateMixin {
   late AnimationController _pulseController;
 
-  double _currentLoad = 0.42;
-
-  final List<Map<String, dynamic>> _loadSources = [
-    {"label": "Tasks", "weight": 0.28},
-    {"label": "Calendar", "weight": 0.19},
-    {"label": "Mode", "weight": 0.14},
-    {"label": "Emotion", "weight": 0.11},
-    {"label": "Opportunity", "weight": 0.09},
-    {"label": "NBA", "weight": 0.07},
+  final List<Map<String, dynamic>> _loadMetrics = [
+    {"label": "Load Magnitude", "value": 0.94, "icon": Icons.stacked_line_chart},
+    {"label": "Load Distribution", "value": 0.91, "icon": Icons.grid_view},
+    {"label": "Load Stability", "value": 0.87, "icon": Icons.balance},
+    {"label": "Load Volatility", "value": 0.89, "icon": Icons.flash_on},
+    {"label": "Load Coherence", "value": 0.95, "icon": Icons.psychology},
+    {"label": "Load Accuracy", "value": 0.93, "icon": Icons.check_circle},
+    {"label": "Load System Index", "value": 0.96, "icon": Icons.settings},
   ];
 
   @override
@@ -46,26 +45,12 @@ class _DeveloperCognitiveLoadPanelState
     );
   }
 
-  void _onLoadTap() {
-    DeveloperLogger.log("Cognitive Load Panel → Load tapped");
-
-    // 🔊 Soft UI tap sound
-    AmbientSoundEngine.instance.quickAction();
-
-    // 🤍 Soft luxury haptic tap
-    AmbientHapticsEngine.instance.softTap();
-
-    _pulseController.forward(from: 0.0);
-  }
-
-  void _onSourceTap(String label, double weight) {
+  void _onLoadTap(String label, double value) {
     DeveloperLogger.log(
-        "Cognitive Load Panel → Source tapped: $label (${(weight * 100).toStringAsFixed(0)}%)");
+      "Cognitive Load Panel → $label tapped (${(value * 100).toStringAsFixed(0)}%)",
+    );
 
-    // 🔊 Soft UI tap sound
     AmbientSoundEngine.instance.quickAction();
-
-    // 🤍 Soft luxury haptic tap
     AmbientHapticsEngine.instance.softTap();
 
     _pulseController.forward(from: 0.0);
@@ -78,7 +63,7 @@ class _DeveloperCognitiveLoadPanelState
     return AnimatedBuilder(
       animation: _pulseController,
       builder: (context, child) {
-        final scale = Tween<double>(begin: 1.0, end: 1.03)
+        final scale = Tween<double>(begin: 1.0, end: 1.04)
             .chain(CurveTween(curve: motion.adaptiveCurve))
             .evaluate(_pulseController);
 
@@ -88,7 +73,7 @@ class _DeveloperCognitiveLoadPanelState
         );
       },
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         decoration: BoxDecoration(
           color: Colors.white.withOpacity(0.05),
           border: Border(
@@ -99,71 +84,45 @@ class _DeveloperCognitiveLoadPanelState
           ),
         ),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // CURRENT LOAD
-            GestureDetector(
-              onTap: _onLoadTap,
-              child: Row(
-                children: [
-                  const Icon(Icons.speed, color: Colors.tealAccent, size: 20),
-                  const SizedBox(width: 10),
-                  Text(
-                    "Load: ${( _currentLoad * 100 ).toStringAsFixed(0)}%",
-                    style: const TextStyle(
-                      color: Colors.tealAccent,
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
-                    ),
+          children: _loadMetrics.map((metric) {
+            final label = metric["label"] as String;
+            final value = metric["value"] as double;
+            final icon = metric["icon"] as IconData;
+
+            return GestureDetector(
+              onTap: () => _onLoadTap(label, value),
+              child: Container(
+                margin: const EdgeInsets.only(bottom: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 12,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.06),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    color: Colors.white.withOpacity(0.10),
+                    width: 1.2,
                   ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 12),
-
-            // LOAD SOURCES
-            SizedBox(
-              height: 46,
-              child: ListView.separated(
-                scrollDirection: Axis.horizontal,
-                itemCount: _loadSources.length,
-                separatorBuilder: (_, __) => const SizedBox(width: 12),
-                itemBuilder: (context, index) {
-                  final source = _loadSources[index];
-                  final label = source["label"] as String;
-                  final weight = source["weight"] as double;
-
-                  return GestureDetector(
-                    onTap: () => _onSourceTap(label, weight),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 14,
-                        vertical: 8,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.06),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: Colors.white.withOpacity(0.10),
-                          width: 1.2,
-                        ),
-                      ),
-                      child: Center(
-                        child: Text(
-                          "$label ${(weight * 100).toStringAsFixed(0)}%",
-                          style: const TextStyle(
-                            color: Colors.white70,
-                            fontSize: 13,
-                          ),
+                ),
+                child: Row(
+                  children: [
+                    Icon(icon, color: Colors.white70, size: 20),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        "$label ${(value * 100).toStringAsFixed(0)}%",
+                        style: const TextStyle(
+                          color: Colors.white70,
+                          fontSize: 14,
                         ),
                       ),
                     ),
-                  );
-                },
+                  ],
+                ),
               ),
-            ),
-          ],
+            );
+          }).toList(),
         ),
       ),
     );
