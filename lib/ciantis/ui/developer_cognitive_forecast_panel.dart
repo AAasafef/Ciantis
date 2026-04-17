@@ -6,7 +6,7 @@ import '../universal/developer_logger.dart';
 
 /// DeveloperCognitiveForecastPanel
 /// --------------------------------
-/// Shows Ciantis' cognitive forecasts with:
+/// Shows Ciantis' forecast metrics with:
 /// - Smooth micro-motion
 /// - Soft sound + haptics on interactions
 /// - Forecast pulse animations
@@ -24,11 +24,12 @@ class _DeveloperCognitiveForecastPanelState
   late AnimationController _pulseController;
 
   final List<Map<String, dynamic>> _forecastMetrics = [
-    {"label": "Emotion Forecast: Calm → Focused", "icon": Icons.favorite},
-    {"label": "Mode Forecast: Reflective → Active", "icon": Icons.bubble_chart},
-    {"label": "Load Forecast: Light → Moderate", "icon": Icons.speed},
-    {"label": "Opportunity Forecast: Navigation ↑", "icon": Icons.lightbulb},
-    {"label": "Prediction Strength: Increasing", "icon": Icons.auto_awesome},
+    {"label": "Reasoning Forecast", "value": 0.95, "icon": Icons.psychology},
+    {"label": "Emotional Forecast", "value": 0.91, "icon": Icons.favorite},
+    {"label": "Mode Forecast", "value": 0.88, "icon": Icons.bubble_chart},
+    {"label": "Prediction Forecast", "value": 0.93, "icon": Icons.auto_awesome},
+    {"label": "Memory Forecast", "value": 0.97, "icon": Icons.storage},
+    {"label": "System Forecast Index", "value": 0.94, "icon": Icons.settings},
   ];
 
   @override
@@ -43,16 +44,14 @@ class _DeveloperCognitiveForecastPanelState
     );
   }
 
-  void _onForecastTap(String label) {
-    DeveloperLogger.log("Cognitive Forecast Panel → $label tapped");
+  void _onForecastTap(String label, double value) {
+    DeveloperLogger.log(
+      "Cognitive Forecast Panel → $label tapped (${(value * 100).toStringAsFixed(0)}%)",
+    );
 
-    // 🔊 Soft UI tap sound
     AmbientSoundEngine.instance.quickAction();
-
-    // 🤍 Soft luxury haptic tap
     AmbientHapticsEngine.instance.softTap();
 
-    // Pulse animation
     _pulseController.forward(from: 0.0);
   }
 
@@ -63,7 +62,7 @@ class _DeveloperCognitiveForecastPanelState
     return AnimatedBuilder(
       animation: _pulseController,
       builder: (context, child) {
-        final scale = Tween<double>(begin: 1.0, end: 1.03)
+        final scale = Tween<double>(begin: 1.0, end: 1.04)
             .chain(CurveTween(curve: motion.adaptiveCurve))
             .evaluate(_pulseController);
 
@@ -73,7 +72,7 @@ class _DeveloperCognitiveForecastPanelState
         );
       },
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         decoration: BoxDecoration(
           color: Colors.white.withOpacity(0.05),
           border: Border(
@@ -86,19 +85,20 @@ class _DeveloperCognitiveForecastPanelState
         child: Column(
           children: _forecastMetrics.map((metric) {
             final label = metric["label"] as String;
+            final value = metric["value"] as double;
             final icon = metric["icon"] as IconData;
 
             return GestureDetector(
-              onTap: () => _onForecastTap(label),
+              onTap: () => _onForecastTap(label, value),
               child: Container(
-                margin: const EdgeInsets.only(bottom: 10),
+                margin: const EdgeInsets.only(bottom: 12),
                 padding: const EdgeInsets.symmetric(
                   horizontal: 14,
-                  vertical: 10,
+                  vertical: 12,
                 ),
                 decoration: BoxDecoration(
                   color: Colors.white.withOpacity(0.06),
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(14),
                   border: Border.all(
                     color: Colors.white.withOpacity(0.10),
                     width: 1.2,
@@ -110,7 +110,7 @@ class _DeveloperCognitiveForecastPanelState
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
-                        label,
+                        "$label ${(value * 100).toStringAsFixed(0)}%",
                         style: const TextStyle(
                           color: Colors.white70,
                           fontSize: 14,
