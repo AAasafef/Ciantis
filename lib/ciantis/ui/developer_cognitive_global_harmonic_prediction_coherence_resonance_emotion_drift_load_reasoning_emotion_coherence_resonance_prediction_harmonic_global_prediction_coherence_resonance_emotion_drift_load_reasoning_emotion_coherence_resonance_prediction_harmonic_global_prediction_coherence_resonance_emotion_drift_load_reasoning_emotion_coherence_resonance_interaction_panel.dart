@@ -4,41 +4,39 @@ import '../universal/ambient_sound_engine.dart';
 import '../universal/ambient_haptics_engine.dart';
 import '../universal/developer_logger.dart';
 
-class DeveloperCognitiveGlobalHarmonicPredictionCoherenceResonanceEmotionDriftLoadReasoningEmotionCoherenceResonancePredictionHarmonicGlobalPredictionCoherenceResonanceEmotionDriftLoadReasoningEmotionCoherenceResonancePredictionHarmonicGlobalPredictionCoherenceResonanceEmotionDriftLoadReasoningEmotionCoherenceResonanceInteractionPanel extends StatefulWidget {
-  const DeveloperCognitiveGlobalHarmonicPredictionCoherenceResonanceEmotionDriftLoadReasoningEmotionCoherenceResonancePredictionHarmonicGlobalPredictionCoherenceResonanceEmotionDriftLoadReasoningEmotionCoherenceResonancePredictionHarmonicGlobalPredictionCoherenceResonanceEmotionDriftLoadReasoningEmotionCoherenceResonanceInteractionPanel({super.key});
+class DeveloperCognitiveGlobalHarmonicPredictionCoherenceResonanceEmotionDriftLoadReasoningEmotionCoherenceResonancePredictionHarmonicGlobalPredictionCoherenceResonanceEmotionDriftLoadReasoningEmotionCoherenceResonanceInteractionPanel extends StatefulWidget {
+  const DeveloperCognitiveGlobalHarmonicPredictionCoherenceResonanceEmotionDriftLoadReasoningEmotionCoherenceResonancePredictionHarmonicGlobalPredictionCoherenceResonanceEmotionDriftLoadReasoningEmotionCoherenceResonanceInteractionPanel({super.key});
 
   @override
-  State<DeveloperCognitiveGlobalHarmonicPredictionCoherenceResonanceEmotionDriftLoadReasoningEmotionCoherenceResonancePredictionHarmonicGlobalPredictionCoherenceResonanceEmotionDriftLoadReasoningEmotionCoherenceResonancePredictionHarmonicGlobalPredictionCoherenceResonanceEmotionDriftLoadReasoningEmotionCoherenceResonanceInteractionPanel> createState() =>
-      _DeveloperCognitiveGlobalHarmonicPredictionCoherenceResonanceEmotionDriftLoadReasoningEmotionCoherenceResonancePredictionHarmonicGlobalPredictionCoherenceResonanceEmotionDriftLoadReasoningEmotionCoherenceResonancePredictionHarmonicGlobalPredictionCoherenceResonanceEmotionDriftLoadReasoningEmotionCoherenceResonanceInteractionPanelState();
+  State<DeveloperCognitiveGlobalHarmonicPredictionCoherenceResonanceEmotionDriftLoadReasoningEmotionCoherenceResonancePredictionHarmonicGlobalPredictionCoherenceResonanceEmotionDriftLoadReasoningEmotionCoherenceResonanceInteractionPanel> createState() =>
+      _DeveloperCognitiveGlobalHarmonicPredictionCoherenceResonanceEmotionDriftLoadReasoningEmotionCoherenceResonancePredictionHarmonicGlobalPredictionCoherenceResonanceEmotionDriftLoadReasoningEmotionCoherenceResonanceInteractionPanelState();
 }
 
-class _DeveloperCognitiveGlobalHarmonicPredictionCoherenceResonanceEmotionDriftLoadReasoningEmotionCoherenceResonancePredictionHarmonicGlobalPredictionCoherenceResonanceEmotionDriftLoadReasoningEmotionCoherenceResonancePredictionHarmonicGlobalPredictionCoherenceResonanceEmotionDriftLoadReasoningEmotionCoherenceResonanceInteractionPanelState
-    extends State<DeveloperCognitiveGlobalHarmonicPredictionCoherenceResonanceEmotionDriftLoadReasoningEmotionCoherenceResonancePredictionHarmonicGlobalPredictionCoherenceResonanceEmotionDriftLoadReasoningEmotionCoherenceResonancePredictionHarmonicGlobalPredictionCoherenceResonanceEmotionDriftLoadReasoningEmotionCoherenceResonanceInteractionPanel>
+class _DeveloperCognitiveGlobalHarmonicPredictionCoherenceResonanceEmotionDriftLoadReasoningEmotionCoherenceResonancePredictionHarmonicGlobalPredictionCoherenceResonanceEmotionDriftLoadReasoningEmotionCoherenceResonanceInteractionPanelState
+    extends State<DeveloperCognitiveGlobalHarmonicPredictionCoherenceResonanceEmotionDriftLoadReasoningEmotionCoherenceResonancePredictionHarmonicGlobalPredictionCoherenceResonanceEmotionDriftLoadReasoningEmotionCoherenceResonanceInteractionPanel>
     with SingleTickerProviderStateMixin {
   late AnimationController _pulseController;
 
   final List<Map<String, dynamic>> _interactionMetrics = [
     {
-      "label":
-          "Global Harmonic↔Prediction↔Coherence↔Resonance↔Emotion↔Drift↔Load↔Reasoning↔Emotion↔Coherence↔Resonance↔Prediction↔Harmonic↔Global↔Prediction↔Coherence↔Resonance↔Emotion↔Drift↔Load↔Reasoning↔Emotion↔Coherence↔Resonance↔Prediction↔Harmonic↔Global↔Prediction↔Coherence↔Resonance↔Emotion↔Drift↔Load↔Reasoning↔Emotion↔Coherence↔Resonance Interaction",
+      "label": "Global Harmonic ↔ Prediction ↔ Coherence ↔ Resonance ↔ Emotion ↔ Drift ↔ Load ↔ Reasoning ↔ Emotion ↔ Coherence ↔ Resonance",
       "value": 0.97,
-      "icon": Icons.sync
+      "icon": Icons.sync,
     },
     {
-      "label":
-          "Subsystem Harmonics ↔ Prediction ↔ Coherence ↔ Resonance ↔ Emotion ↔ Drift ↔ Load ↔ Reasoning ↔ Emotion ↔ Coherence ↔ Resonance ↔ Prediction ↔ Harmonic ↔ Global ↔ Prediction ↔ Coherence ↔ Resonnance ↔ Emotion ↔ Drift ↔ Load ↔ Reasoning ↔ Emotion ↔ Coherence ↔ Resonance ↔ Prediction ↔ Harmonic ↔ Global ↔ Prediction ↔ Coherence ↔ Resonnance ↔ Emotion ↔ Drift ↔ Load ↔ Reasoning ↔ Emotion ↔ Coherence ↔ Resonance",
+      "label": "Subsystem Harmonics ↔ Prediction ↔ Coherence ↔ Resonance ↔ Emotion ↔ Drift ↔ Load ↔ Reasoning ↔ Emotion ↔ Coherence ↔ Resonance",
       "value": 0.94,
-      "icon": Icons.psychology
+      "icon": Icons.psychology,
     },
     {
-      "label": "Hexa-Axis Stability Score",
+      "label": "Hexa‑Axis Stability Score",
       "value": 0.98,
-      "icon": Icons.balance
+      "icon": Icons.balance,
     },
     {
-      "label": "Hexa-Axis Distortion Index",
+      "label": "Hexa‑Axis Distortion Index",
       "value": 0.05,
-      "icon": Icons.warning_amber
+      "icon": Icons.warning_amber,
     },
   ];
 
@@ -46,13 +44,15 @@ class _DeveloperCognitiveGlobalHarmonicPredictionCoherenceResonanceEmotionDriftL
   void initState() {
     super.initState();
     final motion = AmbientMotionEngine.instance;
-    _pulseController =
-        AnimationController(vsync: this, duration: motion.adaptiveDuration);
+    _pulseController = AnimationController(
+      vsync: this,
+      duration: motion.adaptiveDuration,
+    );
   }
 
   void _onMetricTap(String label, double value) {
     DeveloperLogger.log(
-      "Global Harmonic↔Prediction↔Coherence↔Resonance↔Emotion↔Drift↔Load↔Reasoning↔Emotion↔Coherence↔Resonance↔Prediction↔Harmonic↔Global↔Prediction↔Coherence↔Resonance↔Emotion↔Drift↔Load↔Reasoning↔Emotion↔Coherence↔Resonance↔Prediction↔Harmonic↔Global↔Prediction↔Coherence↔Resonance↔Emotion↔Drift↔Load↔Reasoning↔Emotion↔Coherence↔Resonance Interaction Panel → $label tapped (${(value * 100).toStringAsFixed(0)}%)",
+      "Global Harmonic ↔ Prediction ↔ Coherence ↔ Resonance ↔ Emotion ↔ Drift ↔ Load ↔ Reasoning ↔ Emotion ↔ Coherence ↔ Resonance Interaction Panel → $label tapped (${(value * 100).toStringAsFixed(0)}%)",
     );
     AmbientSoundEngine.instance.quickAction();
     AmbientHapticsEngine.instance.softTap();
@@ -76,26 +76,30 @@ class _DeveloperCognitiveGlobalHarmonicPredictionCoherenceResonanceEmotionDriftL
         decoration: BoxDecoration(
           color: Colors.white.withOpacity(0.04),
           border: Border(
-              bottom:
-                  BorderSide(color: Colors.white.withOpacity(0.08), width: 1.2)),
+            bottom: BorderSide(
+              color: Colors.white.withOpacity(0.08),
+              width: 1.2,
+            ),
+          ),
         ),
         child: Column(
           children: _interactionMetrics.map((metric) {
-            final label = metric["label"];
-            final value = metric["value"];
-            final icon = metric["icon"];
+            final label = metric["label"] as String;
+            final value = metric["value"] as double;
+            final icon = metric["icon"] as IconData;
 
             return GestureDetector(
               onTap: () => _onMetricTap(label, value),
               child: Container(
                 margin: const EdgeInsets.only(bottom: 14),
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                 decoration: BoxDecoration(
                   color: Colors.white.withOpacity(0.06),
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
-                      color: Colors.white.withOpacity(0.10), width: 1.2),
+                    color: Colors.white.withOpacity(0.10),
+                    width: 1.2,
+                  ),
                 ),
                 child: Row(
                   children: [
@@ -103,7 +107,7 @@ class _DeveloperCognitiveGlobalHarmonicPredictionCoherenceResonanceEmotionDriftL
                     const SizedBox(width: 14),
                     Expanded(
                       child: Text(
-                        "$label ${(value * 100).toStringAsFixed(0)}%",
+                        "$label  ${(value * 100).toStringAsFixed(0)}%",
                         style: const TextStyle(
                           color: Colors.white70,
                           fontSize: 14,
