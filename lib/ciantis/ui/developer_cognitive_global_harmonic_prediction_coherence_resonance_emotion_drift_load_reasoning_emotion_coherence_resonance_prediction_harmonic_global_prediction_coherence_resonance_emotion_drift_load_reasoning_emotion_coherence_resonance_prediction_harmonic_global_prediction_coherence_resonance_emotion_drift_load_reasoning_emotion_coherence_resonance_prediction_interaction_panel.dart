@@ -44,5 +44,38 @@ leg cast and find elevated in blanket, chck what first?
     capillary refill and temp of skin
 appply hot pack on pt, what must go don to prevent burns?
     barrier beteen skin and source of heta/cold to prevent burns
+can u reach sterile field?
+     no 
+why use strickerf rame, and priority ?
+     limit mobility, mainatin spinal alignemtn
+  if you put on pressure dressing for hemmoriage and pt is pale?
+    loosen dresssing, reassess
+if you see someone cleanif multiple in tubes ?
+  educate cna and stop her
+whta would you tell pt if he ask about abdmonial biner?
+  reduce pain during movement, port your incision
+pt is in skeletal traction, sudden leg pain, observe parlor and decresead movement?
+  call doc stat, compartment sydrome
+if pt comes from surgery, complications from binder?
+  diaphram expansion, impared breathing
+irrigating wound c sterile tchnique and something tocuhes is it sterile?
+  no
+if arm cast is on and pt compain, sweeling, weak pulse, parlor?
+  compartment syndrome
+brand new cast and pt spills water?
+  blot dry, cool fan then asses edges of cast
+setting up for dressign change?
+  comtaminated and start over
+about to do dressig change and they need to use the bathrom?
+  let them go then start
+when educating on cast care tell them what?
+  dont stck anything in there to sctratch an itch, cause sores
+moist to dry dresing used for?
+  remove necrotic tissue off wounds, debrevement
+do what if coworker put hot compress on skin?
+  stop and educate them to use barrier
+if weihhts are hangin for sketal thing?
+  alignment and weight position properly
+best way to asses pin site infection?
+  chekc fo redness, odor, drainage and swelling
 
-  
