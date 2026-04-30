@@ -1,127 +1,39 @@
-import 'package:flutter/material.dart';
-import '../universal/ambient_motion_engine.dart';
-import '../universal/ambient_sound_engine.dart';
-import '../universal/ambient_haptics_engine.dart';
-import '../universal/developer_logger.dart';
-
-class DeveloperCognitiveGlobalHarmonicPredictionCoherenceResonanceEmotionDriftLoadReasoningEmotionCoherenceResonancePredictionHarmonicGlobalPredictionCoherenceResonanceEmotionDriftLoadReasoningEmotionCoherenceResonancePredictionHarmonicGlobalPredictionCoherenceResonanceEmotionDriftLoadReasoningEmotionCoherenceResonancePredictionInteractionPanel extends StatefulWidget {
-  const DeveloperCognitiveGlobalHarmonicPredictionCoherenceResonanceEmotionDriftLoadReasoningEmotionCoherenceResonancePredictionHarmonicGlobalPredictionCoherenceResonanceEmotionDriftLoadReasoningEmotionCoherenceResonancePredictionHarmonicGlobalPredictionCoherenceResonanceEmotionDriftLoadReasoningEmotionCoherenceResonancePredictionInteractionPanel({super.key});
-
-  @override
-  State<DeveloperCognitiveGlobalHarmonicPredictionCoherenceResonanceEmotionDriftLoadReasoningEmotionCoherenceResonancePredictionHarmonicGlobalPredictionCoherenceResonanceEmotionDriftLoadReasoningEmotionCoherenceResonancePredictionHarmonicGlobalPredictionCoherenceResonanceEmotionDriftLoadReasoningEmotionCoherenceResonancePredictionInteractionPanel> createState() =>
-      _DeveloperCognitiveGlobalHarmonicPredictionCoherenceResonanceEmotionDriftLoadReasoningEmotionCoherenceResonancePredictionHarmonicGlobalPredictionCoherenceResonanceEmotionDriftLoadReasoningEmotionCoherenceResonancePredictionHarmonicGlobalPredictionCoherenceResonanceEmotionDriftLoadReasoningEmotionCoherenceResonancePredictionInteractionPanelState();
-}
-
-class _DeveloperCognitiveGlobalHarmonicPredictionCoherenceResonanceEmotionDriftLoadReasoningEmotionCoherenceResonancePredictionHarmonicGlobalPredictionCoherenceResonanceEmotionDriftLoadReasoningEmotionCoherenceResonancePredictionHarmonicGlobalPredictionCoherenceResonanceEmotionDriftLoadReasoningEmotionCoherenceResonancePredictionInteractionPanelState
-    extends State<DeveloperCognitiveGlobalHarmonicPredictionCoherenceResonanceEmotionDriftLoadReasoningEmotionCoherenceResonancePredictionHarmonicGlobalPredictionCoherenceResonanceEmotionDriftLoadReasoningEmotionCoherenceResonancePredictionHarmonicGlobalPredictionCoherenceResonanceEmotionDriftLoadReasoningEmotionCoherenceResonancePredictionInteractionPanel>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _pulseController;
-
-  final List<Map<String, dynamic>> _interactionMetrics = [
-    {
-      "label":
-          "Global Harmonic↔Prediction↔Coherence↔Resonance↔Emotion↔Drift↔Load↔Reasoning↔Emotion↔Coherence↔Resonance↔Prediction↔Harmonic↔Global↔Prediction↔Coherence↔Resonance↔Emotion↔Drift↔Load↔Reasoning↔Emotion↔Coherence↔Resonance↔Prediction↔Harmonic↔Global↔Prediction↔Coherence↔Resonance↔Emotion↔Drift↔Load↔Reasoning↔Emotion↔Coherence↔Resonance↔Prediction Interaction",
-      "value": 0.97,
-      "icon": Icons.sync
-    },
-    {
-      "label":
-          "Subsystem Harmonics ↔ Prediction ↔ Coherence ↔ Resonance ↔ Emotion ↔ Drift ↔ Load ↔ Reasoning ↔ Emotion ↔ Coherence ↔ Resonance ↔ Prediction ↔ Harmonic ↔ Global ↔ Prediction ↔ Coherence ↔ Resonnance ↔ Emotion ↔ Drift ↔ Load ↔ Reasoning ↔ Emotion ↔ Coherence ↔ Resonance ↔ Prediction ↔ Harmonic ↔ Global ↔ Prediction ↔ Coherence ↔ Resonnance ↔ Emotion ↔ Drift ↔ Load ↔ Reasoning ↔ Emotion ↔ Coherence ↔ Resonance ↔ Prediction",
-      "value": 0.94,
-      "icon": Icons.psychology
-    },
-    {
-      "label": "Hexa-Axis Stability Score",
-      "value": 0.98,
-      "icon": Icons.balance
-    },
-    {
-      "label": "Hexa-Axis Distortion Index",
-      "value": 0.05,
-      "icon": Icons.warning_amber
-    },
-  ];
-
-  @override
-  void initState() {
-    super.initState();
-    final motion = AmbientMotionEngine.instance;
-    _pulseController =
-        AnimationController(vsync: this, duration: motion.adaptiveDuration);
-  }
-
-  void _onMetricTap(String label, double value) {
-    DeveloperLogger.log(
-      "Global Harmonic↔Prediction↔Coherence↔Resonance↔Emotion↔Drift↔Load↔Reasoning↔Emotion↔Coherence↔Resonance↔Prediction↔Harmonic↔Global↔Prediction↔Coherence↔Resonance↔Emotion↔Drift↔Load↔Reasoning↔Emotion↔Coherence↔Resonance↔Prediction↔Harmonic↔Global↔Prediction↔Coherence↔Resonance↔Emotion↔Drift↔Load↔Reasoning↔Emotion↔Coherence↔Resonance↔Prediction Interaction Panel → $label tapped (${(value * 100).toStringAsFixed(0)}%)",
-    );
-    AmbientSoundEngine.instance.quickAction();
-    AmbientHapticsEngine.instance.softTap();
-    _pulseController.forward(from: 0.0);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final motion = AmbientMotionEngine.instance;
-
-    return AnimatedBuilder(
-      animation: _pulseController,
-      builder: (context, child) {
-        final scale = Tween<double>(begin: 1.0, end: 1.03)
-            .chain(CurveTween(curve: motion.adaptiveCurve))
-            .evaluate(_pulseController);
-        return Transform.scale(scale: scale, child: child);
-      },
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.04),
-          border: Border(
-            bottom: BorderSide(
-              color: Colors.white.withOpacity(0.08),
-              width: 1.2,
-            ),
-          ),
-        ),
-        child: Column(
-          children: _interactionMetrics.map((metric) {
-            final label = metric["label"];
-            final value = metric["value"];
-            final icon = metric["icon"];
-
-            return GestureDetector(
-              onTap: () => _onMetricTap(label, value),
-              child: Container(
-                margin: const EdgeInsets.only(bottom: 14),
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.06),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: Colors.white.withOpacity(0.10),
-                    width: 1.2,
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    Icon(icon, color: Colors.white70, size: 22),
-                    const SizedBox(width: 14),
-                    Expanded(
-                      child: Text(
-                        "$label ${(value * 100).toStringAsFixed(0)}%",
-                        style: const TextStyle(
-                          color: Colors.white70,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          }).toList(),
-        ),
-      ),
-    );
-  }
-}
+  if youre putting on sterile gloes and accidently touch curtains?
+      remove and redo
+  if you have leg cast and pt complaunt numb, tile, what primary ?
+     assses for compartment syndrome
+  sterile feild and jices run over sterile drssing?
+      its contaminiated start over
+  why do we perfomr pin care?
+      remove crust and bacteria removal
+  if you pu warm compress and they complian of pain/disconmfort?
+     remove and assess the area
+  if youre geting ready to take off painful dressing what do you do?
+      pain meds 30-45 minutes prior
+  why do we using stricker frame?
+      keeps everything in alignment, extreme immobility
+ if youre wrapping a leg or lower exteemeity to sdo a sprial, what to check for?
+     circulation, leaves toes uncovered to check capillary refill
+  if ou have object for sterile field and it falls 1/2 inch to border?
+    contaminated, start over. anything under 1 inch is cotaminated.
+if you have pt that comes back to the floor with abdominal binder, asses for what?
+   respirarions, loose binder if repsirating fast
+if chnagin sterile dressing and you need a mask and rubber breaks and face xposed?
+  clean it all out and start over
+if pt needs heat and they start complaingin shortly after?
+  stop it and assess vital signs since heats dialets blood vessels, so maybe drop in BP
+how do you perform pin care? why do we clean it?
+  from the pin outward
+why do we put abdominal binders on pt?
+  to help hold stomac so its not so painful-study in the book their answer
+if you had cold compress on sprained ankle and pt complian of numbness and bluisj color, do what?
+  remove and asses the skin for burns
+itching under cast?
+    cold compress or coll blow dryr
+when doing surgicla scrub what causes break in sterile technique?
+    touching sink faucet
+  if pt is in buckstraction and heels hurt/burn?
+    assess for breakdown of heel
+what would the bandage all the way to pt knees?
+      
+  
