@@ -91,4 +91,7 @@ pt in skin traction need to use bedban?
 post op pt with binder in place, safe use of binder?
   make sure binder is snug but allows normal breathing
 proper ppe irrgating wound?
-  
+ gloves, gown, mask, fac sheild
+pt has cast and odor and drainging?
+  call doc and assess for infection nder cast
+
