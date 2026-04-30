@@ -35,5 +35,14 @@ when doing surgicla scrub what causes break in sterile technique?
   if pt is in buckstraction and heels hurt/burn?
     assess for breakdown of heel
 what would the bandage all the way to pt knees?
-      
+      leaves toes out and go upwards towards the heart, in the motion of circulatinos
+  if you hve a pt and you open wound and its green and stink?
+    infection call doctor and get a culture od the wound
+what happens if your about to do dressing change and pt trie to touch?
+   start over if they touch but tell them not to when u strat
+leg cast and find elevated in blanket, chck what first?
+    capillary refill and temp of skin
+appply hot pack on pt, what must go don to prevent burns?
+    barrier beteen skin and source of heta/cold to prevent burns
+
   
