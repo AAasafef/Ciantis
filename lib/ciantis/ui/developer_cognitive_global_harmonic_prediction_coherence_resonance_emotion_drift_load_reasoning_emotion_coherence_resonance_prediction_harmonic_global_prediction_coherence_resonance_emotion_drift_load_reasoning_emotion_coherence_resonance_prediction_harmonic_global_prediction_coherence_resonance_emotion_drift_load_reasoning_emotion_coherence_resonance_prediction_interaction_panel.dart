@@ -78,4 +78,17 @@ if weihhts are hangin for sketal thing?
   alignment and weight position properly
 best way to asses pin site infection?
   chekc fo redness, odor, drainage and swelling
-
+best dressing for absorbing moderate dresing abdominal wound?
+  bone dressing wile protecting abdomnial
+bandage on lower extemeties and blanching of toes (pale)?
+  loosen or remove the bandage
+correct procedure anf you turn back to sterile field?
+  start over
+cold therapy for 20 minute after 15 minute pt complaind?
+  remove and assess
+pt in skin traction need to use bedban?
+  fractor pan instead
+post op pt with binder in place, safe use of binder?
+  make sure binder is snug but allows normal breathing
+proper ppe irrgating wound?
+  
