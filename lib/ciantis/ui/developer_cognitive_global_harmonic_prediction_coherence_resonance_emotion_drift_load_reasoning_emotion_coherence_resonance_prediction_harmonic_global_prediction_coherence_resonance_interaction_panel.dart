@@ -4,39 +4,39 @@ import '../universal/ambient_sound_engine.dart';
 import '../universal/ambient_haptics_engine.dart';
 import '../universal/developer_logger.dart';
 
-class DeveloperCognitiveGlobalHarmonicPredictionCoherenceResonanceEmotionDriftLoadReasoningEmotionCoherenceResonancePredictionHarmonicGlobalPredictionCoherenceResonanceInteractionPanel extends StatefulWidget {
-  const DeveloperCognitiveGlobalHarmonicPredictionCoherenceResonanceEmotionDriftLoadReasoningEmotionCoherenceResonancePredictionHarmonicGlobalPredictionCoherenceResonanceInteractionPanel({super.key});
+class DeveloperCognitiveGlobalHarmonicPredictionCoherenceResonanceInteractionPanel extends StatefulWidget {
+  const DeveloperCognitiveGlobalHarmonicPredictionCoherenceResonanceInteractionPanel({super.key});
 
   @override
-  State<DeveloperCognitiveGlobalHarmonicPredictionCoherenceResonanceEmotionDriftLoadReasoningEmotionCoherenceResonancePredictionHarmonicGlobalPredictionCoherenceResonanceInteractionPanel> createState() =>
-      _DeveloperCognitiveGlobalHarmonicPredictionCoherenceResonanceEmotionDriftLoadReasoningEmotionCoherenceResonancePredictionHarmonicGlobalPredictionCoherenceResonanceInteractionPanelState();
+  State<DeveloperCognitiveGlobalHarmonicPredictionCoherenceResonanceInteractionPanel> createState() =>
+      _DeveloperCognitiveGlobalHarmonicPredictionCoherenceResonanceInteractionPanelState();
 }
 
-class _DeveloperCognitiveGlobalHarmonicPredictionCoherenceResonanceEmotionDriftLoadReasoningEmotionCoherenceResonancePredictionHarmonicGlobalPredictionCoherenceResonanceInteractionPanelState
-    extends State<DeveloperCognitiveGlobalHarmonicPredictionCoherenceResonanceEmotionDriftLoadReasoningEmotionCoherenceResonancePredictionHarmonicGlobalPredictionCoherenceResonanceInteractionPanel>
+class _DeveloperCognitiveGlobalHarmonicPredictionCoherenceResonanceInteractionPanelState
+    extends State<DeveloperCognitiveGlobalHarmonicPredictionCoherenceResonanceInteractionPanel>
     with SingleTickerProviderStateMixin {
   late AnimationController _pulseController;
 
   final List<Map<String, dynamic>> _interactionMetrics = [
     {
-      "label": "Global Harmonic↔Prediction↔Coherence↔Resonance↔Emotion↔Drift↔Load↔Reasoning↔Emotion↔Coherence↔Resonance↔Prediction↔Harmonic↔Global↔Prediction↔Coherence↔Resonance Interaction",
-      "value": 0.96,
-      "icon": Icons.sync
-    },
-    {
-      "label": "Subsystem Harmonics ↔ Prediction ↔ Coherence ↔ Resonance ↔ Emotion ↔ Drift ↔ Load ↔ Reasoning ↔ Emotion ↔ Coherence ↔ Resonnance ↔ Prediction ↔ Harmonic ↔ Global ↔ Prediction ↔ Coherence ↔ Resonance",
-      "value": 0.93,
-      "icon": Icons.psychology
-    },
-    {
-      "label": "Hexa-Axis Stability Score",
+      "label": "Global Harmonic ↔ Prediction ↔ Coherence ↔ Resonance",
       "value": 0.97,
-      "icon": Icons.balance
+      "icon": Icons.sync,
     },
     {
-      "label": "Hexa-Axis Distortion Index",
-      "value": 0.06,
-      "icon": Icons.warning_amber
+      "label": "Subsystem Harmonics ↔ Prediction ↔ Coherence ↔ Resonance",
+      "value": 0.94,
+      "icon": Icons.psychology,
+    },
+    {
+      "label": "Hexa‑Axis Stability Score",
+      "value": 0.98,
+      "icon": Icons.balance,
+    },
+    {
+      "label": "Hexa‑Axis Distortion Index",
+      "value": 0.05,
+      "icon": Icons.warning_amber,
     },
   ];
 
@@ -44,12 +44,15 @@ class _DeveloperCognitiveGlobalHarmonicPredictionCoherenceResonanceEmotionDriftL
   void initState() {
     super.initState();
     final motion = AmbientMotionEngine.instance;
-    _pulseController = AnimationController(vsync: this, duration: motion.adaptiveDuration);
+    _pulseController = AnimationController(
+      vsync: this,
+      duration: motion.adaptiveDuration,
+    );
   }
 
   void _onMetricTap(String label, double value) {
     DeveloperLogger.log(
-      "Global Harmonic↔Prediction↔Coherence↔Resonance↔Emotion↔Drift↔Load↔Reasoning↔Emotion↔Coherence↔Resonance↔Prediction↔Harmonic↔Global↔Prediction↔Coherence↔Resonance Interaction Panel → $label tapped (${(value * 100).toStringAsFixed(0)}%)",
+      "Global Harmonic ↔ Prediction ↔ Coherence ↔ Resonance Interaction Panel → $label tapped (${(value * 100).toStringAsFixed(0)}%)",
     );
     AmbientSoundEngine.instance.quickAction();
     AmbientHapticsEngine.instance.softTap();
@@ -72,13 +75,18 @@ class _DeveloperCognitiveGlobalHarmonicPredictionCoherenceResonanceEmotionDriftL
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: Colors.white.withOpacity(0.04),
-          border: Border(bottom: BorderSide(color: Colors.white.withOpacity(0.08), width: 1.2)),
+          border: Border(
+            bottom: BorderSide(
+              color: Colors.white.withOpacity(0.08),
+              width: 1.2,
+            ),
+          ),
         ),
         child: Column(
           children: _interactionMetrics.map((metric) {
-            final label = metric["label"];
-            final value = metric["value"];
-            final icon = metric["icon"];
+            final label = metric["label"] as String;
+            final value = metric["value"] as double;
+            final icon = metric["icon"] as IconData;
 
             return GestureDetector(
               onTap: () => _onMetricTap(label, value),
@@ -88,7 +96,10 @@ class _DeveloperCognitiveGlobalHarmonicPredictionCoherenceResonanceEmotionDriftL
                 decoration: BoxDecoration(
                   color: Colors.white.withOpacity(0.06),
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: Colors.white.withOpacity(0.10), width: 1.2),
+                  border: Border.all(
+                    color: Colors.white.withOpacity(0.10),
+                    width: 1.2,
+                  ),
                 ),
                 child: Row(
                   children: [
@@ -96,7 +107,7 @@ class _DeveloperCognitiveGlobalHarmonicPredictionCoherenceResonanceEmotionDriftL
                     const SizedBox(width: 14),
                     Expanded(
                       child: Text(
-                        "$label ${(value * 100).toStringAsFixed(0)}%",
+                        "$label  ${(value * 100).toStringAsFixed(0)}%",
                         style: const TextStyle(
                           color: Colors.white70,
                           fontSize: 14,
