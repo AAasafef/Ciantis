@@ -1,47 +1,29 @@
 import 'package:flutter/material.dart';
-import 'ui/ciantis_shell.dart';
-import 'universal/developer_logger.dart';
-import 'universal/cognitive_engine_orchestrator.dart';
+import '../core/app_providers.dart';
+import '../core/global_state_bus.dart';
+import 'ciantis_system_shell.dart';
+import 'ciantis_theme.dart';
 
-/// CiantisApp
-/// -----------
-/// Root of the entire application.
-/// Starts the Cognitive Engine Orchestrator on launch.
-class CiantisApp extends StatefulWidget {
+class CiantisApp extends StatelessWidget {
   const CiantisApp({super.key});
 
   @override
-  State<CiantisApp> createState() => _CiantisAppState();
-}
-
-class _CiantisAppState extends State<CiantisApp> {
-  @override
-  void initState() {
-    super.initState();
-    DeveloperLogger.log("CiantisApp initialized → starting orchestrator");
-
-    /// Start the cognitive engine orchestrator
-    CognitiveEngineOrchestrator.instance.start();
-  }
-
-  @override
-  void dispose() {
-    DeveloperLogger.log("CiantisApp disposed → stopping orchestrator");
-
-    /// Stop orchestrator cleanly
-    CognitiveEngineOrchestrator.instance.stop();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    DeveloperLogger.log("CiantisApp build");
-
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: "Ciantis",
-      theme: ThemeData.dark(),
-      home: const CiantisShell(),
+    return GlobalStateBus(
+      child: AppProviders(
+        child: Builder(
+          builder: (context) {
+            final theme = CiantisTheme.buildTheme();
+            return MaterialApp(
+              title: 'Ciantis',
+              debugShowCheckedModeBanner: false,
+              theme: theme,
+              onGenerateRoute: CiantisSystemShell.onGenerateRoute,
+              initialRoute: CiantisSystemShell.initialRoute,
+            );
+          },
+        ),
+      ),
     );
   }
 }
