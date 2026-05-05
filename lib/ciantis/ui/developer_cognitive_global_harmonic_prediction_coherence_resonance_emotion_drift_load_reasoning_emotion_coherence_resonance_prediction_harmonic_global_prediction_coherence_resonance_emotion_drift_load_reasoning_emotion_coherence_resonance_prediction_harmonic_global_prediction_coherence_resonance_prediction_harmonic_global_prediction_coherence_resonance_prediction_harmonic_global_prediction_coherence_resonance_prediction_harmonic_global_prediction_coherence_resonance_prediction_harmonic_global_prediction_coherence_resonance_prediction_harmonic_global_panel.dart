@@ -54,7 +54,7 @@ class _DeveloperCognitiveGlobalHarmonicPredictionCoherenceResonanceEmotionDriftL
 
   void _onMetricTap(String label, double value) {
     DeveloperLogger.log(
-      "Global Harmonic ↔ Prediction ↔ Coherence ↔ Resonance ↔ Emotion ↔ Drift ↔ Load ↔ Reasoning ↔ Emotion ↔ Coherence ↔ Resonance ↔ Prediction ↔ Harmonic ↔ Global ↔ Prediction ↔ Coherence ↔ Resonance ↔ Emotion ↔ Drift ↔ Load ↔ Reasoning ↔ Emotion ↔ Coherence ↔ Resonance ↔ Prediction ↔ Harmonic ↔ Global ↔ Prediction ↔ Coherence ↔ Resonance ↔ Prediction ↔ Harmonic ↔ Global ↔ Prediction ↔ Coherence ↔ Resonance ↔ Prediction ↔ Harmonic ↔ Global Panel → $label tapped (${(value * 100).toStringAsFixed(0)}%)",
+      "Global Harmonic ↔ Prediction ↔ Coherence ↔ Resonance ↔ Emotion ↔ Drift ↔ Load ↔ Reasoning ↔ Emotion ↔ Coherence ↔ Resonance ↔ Prediction ↔ Harmonic ↔ Global ↔ Prediction ↔ Coherence ↔ Resonance ↔ Emotion ↔ Drift ↔ Load ↔ Reasoning ↔ Emotion ↔ Coherence ↔ Resonance ↔ Prediction ↔ Harmonic ↔ Global Panel → $label tapped (${(value * 100).toStringAsFixed(0)}%)",
     );
     AmbientSoundEngine.instance.quickAction();
     AmbientHapticsEngine.instance.softTap();
