@@ -1,9 +1,22 @@
 import 'package:flutter/material.dart';
 
-// Use ONLY your main app entry point
-import 'ciantis/ciantis_app.dart';
+class CiantisHomeScreen extends StatelessWidget {
+  const CiantisHomeScreen({super.key});
 
-void main() {
-  WidgetsFlutterBinding.ensureInitialized();
-  runApp(const CiantisApp());
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFFF7F5F2),
+      body: Center(
+        child: Text(
+          "Ciantis Home Screen",
+          style: TextStyle(
+            fontSize: 28,
+            fontWeight: FontWeight.w600,
+            color: Colors.black.withOpacity(0.85),
+          ),
+        ),
+      ),
+    );
+  }
 }
